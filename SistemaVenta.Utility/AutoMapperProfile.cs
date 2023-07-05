@@ -101,7 +101,7 @@ namespace SistemaVenta.Utility
             CreateMap<VentaDTO, Venta>()
                 .ForMember(destino =>
                 destino.Total,
-                opt => opt.MapFrom(origen => Convert.ToDecimal(origen.TotalTexto.Value, new CultureInfo("es-CO")))
+                opt => opt.MapFrom(origen => Convert.ToDecimal(origen.TotalTexto, new CultureInfo("es-CO")))
                 );
             #endregion Venta
 

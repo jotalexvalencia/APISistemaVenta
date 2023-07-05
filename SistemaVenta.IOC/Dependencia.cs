@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using SistemaVenta.DAL.Repositorios.Contrato;
 using SistemaVenta.DAL.Repositorios;
 
+using SistemaVenta.Utility;
+
 namespace SistemaVenta.IOC
 {
     public static class Dependencia
@@ -24,6 +26,8 @@ namespace SistemaVenta.IOC
 
             services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));// modelo generico
             services.AddScoped<IVentaRepository, VentaRepository>();//modelo exacto
+
+            services.AddAutoMapper(typeof(AutoMapperProfile));
 
         }
     }
