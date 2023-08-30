@@ -30,9 +30,16 @@ namespace SistemaVenta.DAL.Repositorios
                 {
                     foreach (DetalleVenta dv in modelo.DetalleVenta)
                     {
-                        Producto producto_encontrado = _dbcontext.Productos.Where(p=>p.IdProducto == dv.IdProducto).First();
-                        producto_encontrado.Stock = producto_encontrado.Stock - dv.Cantidad;
-                        _dbcontext.Productos.Update(producto_encontrado);
+
+                        if (dv.Cantidad > 0)
+                        {
+
+                            Producto producto_encontrado = _dbcontext.Productos.Where(p => p.IdProducto == dv.IdProducto).First();
+                            producto_encontrado.Stock = producto_encontrado.Stock - dv.Cantidad;
+                            _dbcontext.Productos.Update(producto_encontrado);
+                        }
+                        else
+                            throw new Exception("Debe ingresar cantidad mayor o igual a 1");
 
                     }
                     await _dbcontext.SaveChangesAsync();

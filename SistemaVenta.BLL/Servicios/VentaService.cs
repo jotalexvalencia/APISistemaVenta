@@ -29,12 +29,12 @@ namespace SistemaVenta.BLL.Servicios
             _mapper = mapper;
         }
 
-        public async Task<VentaDTO> Registrar(VentaDTO modelo)
+        public async Task<VentaDTO> Registrar(VentaDTO modelo )
         {
             try 
             {
                 var ventaGenerada = await _ventaRepositorio.Registrar(_mapper.Map<Venta>(modelo));
-                if(ventaGenerada.IdVenta == 0)
+                if (ventaGenerada.IdVenta == 0)
                     throw new TaskCanceledException("No se pudo crear");
                 return _mapper.Map<VentaDTO>(ventaGenerada);
             } catch { throw; }
