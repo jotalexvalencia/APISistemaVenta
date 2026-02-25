@@ -18,7 +18,7 @@ namespace SistemaVenta.DTO
 
         public string? RolDescripcion { get; set; }
 
-        public string? Clave { get; set; }
+        // public string? Clave { get; set; } // ELIMINADO: Razones de seguridad. La clave nunca debe viajar al cliente.
 
         public int? EsActivo { get; set; }
     }
