@@ -13,7 +13,7 @@ namespace SistemaVenta.DTO
         public string? Correo { get; set; }
         public string? RolDescripcion { get; set; }
 
-        // NUEVO: Aquí es donde el Backend devolverá el Token JWT
+        // NUEVO: Aquí es donde el Backend devolverá el Token JWT 
         public string? Token { get; set; }
     }
 }
