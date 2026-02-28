@@ -14,6 +14,7 @@ namespace SistemaVenta.DTO
         public string? RolDescripcion { get; set; }
 
         // NUEVO: Aquí es donde el Backend devolverá el Token JWT 
-        public string? Token { get; set; }
+        public string? Token { get; set; } // JWT (1 hora)
+        public string? RefreshToken { get; set; } // Refresh (7 días) <--- NUEVO
     }
 }

@@ -122,5 +122,23 @@ namespace SistemaVenta.API.Controllers
 
             return Ok(rsp);
         }
+
+        [HttpPost]
+        [Route("RenovarToken")]
+        public async Task<IActionResult> RenovarToken([FromBody] string refreshToken)
+        {
+            var rsp = new Response<SesionDTO>();
+            try
+            {
+                rsp.status = true;
+                rsp.Value = await _usuarioServicio.RenovarToken(refreshToken);
+            }
+            catch (Exception ex)
+            {
+                rsp.status = false;
+                rsp.msg = ex.Message;
+            }
+            return Ok(rsp);
+        }
     }
 }

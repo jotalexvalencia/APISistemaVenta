@@ -20,4 +20,6 @@ public partial class Usuario
     public DateTime? FechaRegistro { get; set; }
 
     public virtual Rol? IdRolNavigation { get; set; }
+
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

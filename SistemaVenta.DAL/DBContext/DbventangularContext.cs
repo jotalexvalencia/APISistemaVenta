@@ -34,6 +34,8 @@ public partial class DbventangularContext : DbContext
 
     public virtual DbSet<Venta> Venta { get; set; }
 
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -234,6 +236,8 @@ public partial class DbventangularContext : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("total");
         });
+
+        
 
         OnModelCreatingPartial(modelBuilder);
     }

@@ -13,10 +13,14 @@ namespace SistemaVenta.BLL.Servicios
         private readonly IGenericRepository<Usuario> _usuarioRepositorio;
         private readonly IMapper _mapper;
         private readonly IJwtService _jwtService;
+        private readonly IGenericRepository<RefreshToken> _refreshTokenRepositorio; // <--- Nuevo
 
-        public UsuarioService(IGenericRepository<Usuario> usuarioRepositorio, IMapper mapper, IJwtService jwtService)
+        public UsuarioService(IGenericRepository<Usuario> usuarioRepositorio,
+            IGenericRepository<RefreshToken> refreshTokenRepositorio, // <--- Nuevo
+            IMapper mapper, IJwtService jwtService)
         {
             _usuarioRepositorio = usuarioRepositorio;
+            _refreshTokenRepositorio = refreshTokenRepositorio; // <--- Nuevo
             _mapper = mapper;
             _jwtService = jwtService;
         }
@@ -42,36 +46,111 @@ namespace SistemaVenta.BLL.Servicios
             catch { throw; }
         }
 
-        public async Task<SesionDTO> ValidarCredenciales(string correo, string clave)
+        public async Task<SesionDTO> ValidarCredenciales(string? correo, string? clave)
         {
             try
             {
-                // 1. Buscamos SOLO por correo (ya no filtramos por clave en la query)
+                // 1. Buscamos SOLO por correo
                 var queryUsuario = await _usuarioRepositorio.Consultar(u => u.Correo == correo);
                 var usuarioEncontrado = queryUsuario.Include(rol => rol.IdRolNavigation).FirstOrDefault();
 
                 if (usuarioEncontrado == null)
                     throw new TaskCanceledException("El usuario no existe");
 
-                // 2. Verificamos la clave con BCrypt (Comparación segura)
-                // Nota: La BD tiene claves viejas planas, mañana habrá que actualizarlas.
-                // Por ahora, si la verificación falla, asumimos que es la clave plana antigua para compatibilidad temporal, 
-                // PERO LO CORRECTO ES SOLO USAR Verify.
-
+                // 2. Verificamos la clave con BCrypt
                 bool claveValida = BCrypt.Net.BCrypt.Verify(clave, usuarioEncontrado.Clave);
 
                 if (!claveValida)
                     throw new TaskCanceledException("La contraseña es incorrecta");
 
-                // 3. Generar Token
+                // 3. Generar Token JWT
                 var sesion = _mapper.Map<SesionDTO>(usuarioEncontrado);
                 sesion.Token = _jwtService.GenerateToken(usuarioEncontrado);
 
+                // 4. Generar Refresh Token 
+                var refreshToken = new RefreshToken
+                {
+                    IdUsuario = usuarioEncontrado.IdUsuario,
+                    Token = Guid.NewGuid().ToString() + "-" + Guid.NewGuid().ToString(),
+                    FechaExpiracion = DateTime.Now.AddDays(7),
+                    Activo = true,
+                    FechaCreacion = DateTime.Now
+                };
+
+                // --- BLOQUE DE DIAGNÓSTICO ---
+                try
+                {
+                    await _refreshTokenRepositorio.Crear(refreshToken);
+                }
+                catch (Exception dbEx)
+                {
+                    // Esto imprimirá el error REAL en la ventana "Salida" (Output) de Visual Studio
+                    System.Diagnostics.Debug.WriteLine("=== ERROR DB INTERNO ===");
+                    System.Diagnostics.Debug.WriteLine(dbEx.InnerException?.Message ?? dbEx.Message);
+                    System.Diagnostics.Debug.WriteLine("========================");
+
+                    // Lanzamos un error más claro para Scalar
+                    throw new TaskCanceledException("Error al guardar Refresh Token: " + (dbEx.InnerException?.Message ?? dbEx.Message));
+                }
+                // -----------------------------
+
+                sesion.RefreshToken = refreshToken.Token;
                 return sesion;
             }
             catch { throw; }
         }
 
+        public async Task<SesionDTO> RenovarToken(string? refreshToken)
+        {
+            try
+            {
+                // 1. Buscar el token en BD
+                var tokenEncontrado = await _refreshTokenRepositorio.Obtener(t => t.Token == refreshToken && t.Activo == true);
+
+                if (tokenEncontrado == null)
+                    throw new TaskCanceledException("Token inválido o expirado");
+
+                if (tokenEncontrado.FechaExpiracion < DateTime.Now)
+                {
+                    tokenEncontrado.Activo = false;
+                    await _refreshTokenRepositorio.Editar(tokenEncontrado);
+                    throw new TaskCanceledException("Token expirado");
+                }
+
+                // 2. Obtener el usuario asociado
+                var usuario = await _usuarioRepositorio.Obtener(u => u.IdUsuario == tokenEncontrado.IdUsuario);
+                if (usuario == null) throw new TaskCanceledException("Usuario no encontrado");
+
+                // 3. Generar NUEVO JWT
+                var nuevoJwt = _jwtService.GenerateToken(usuario);
+
+                // 4. Invalidar el Refresh Token viejo (Seguridad: One-time use)
+                tokenEncontrado.Activo = false;
+                await _refreshTokenRepositorio.Editar(tokenEncontrado);
+
+                // 5. Generar NUEVO Refresh Token (Rotación)
+                var nuevoRefreshToken = new RefreshToken
+                {
+                    IdUsuario = usuario.IdUsuario,
+                    Token = Guid.NewGuid().ToString() + "-" + Guid.NewGuid().ToString(),
+                    FechaExpiracion = DateTime.Now.AddDays(7),
+                    Activo = true,
+                    FechaCreacion = DateTime.Now
+                };
+                await _refreshTokenRepositorio.Crear(nuevoRefreshToken);
+
+                // 6. Devolver respuesta
+                return new SesionDTO
+                {
+                    Token = nuevoJwt,
+                    RefreshToken = nuevoRefreshToken.Token,
+                    NombreCompleto = usuario.NombreCompleto,
+                    Correo = usuario.Correo,
+                    // ... otros campos ...
+                };
+            }
+            catch { throw; }
+        }
         public async Task<UsuarioDTO> Crear(UsuarioDTO modelo)
         {
             try
