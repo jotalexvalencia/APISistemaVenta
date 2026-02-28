@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using SistemaVenta.BLL.Servicios.Contrato;
 using SistemaVenta.DAL.Repositorios.Contrato;
 using SistemaVenta.DTO;
 using SistemaVenta.Model;
+using SistemaVenta.Utility.Seguridad; // <--- Nuevo Using
 
 namespace SistemaVenta.BLL.Servicios
 {
@@ -18,11 +12,13 @@ namespace SistemaVenta.BLL.Servicios
     {
         private readonly IGenericRepository<Usuario> _usuarioRepositorio;
         private readonly IMapper _mapper;
+        private readonly IJwtService _jwtService; // <--- Nuevo Campo
 
-        public UsuarioService(IGenericRepository<Usuario> usuarioRepositorio, IMapper mapper)
+        public UsuarioService(IGenericRepository<Usuario> usuarioRepositorio, IMapper mapper, IJwtService jwtService)
         {
             _usuarioRepositorio = usuarioRepositorio;
             _mapper = mapper;
+            _jwtService = jwtService; // <--- Inyección del Servicio JWT
         }
 
         public async Task<List<UsuarioDTO>> Lista()
@@ -54,7 +50,13 @@ namespace SistemaVenta.BLL.Servicios
 
                 Usuario devolverUsuario = queryUsuario.Include(rol=>rol.IdRolNavigation).First();
 
-                return _mapper.Map<SesionDTO>(devolverUsuario);
+                // Mapear el usuario a SesionDTO
+                var sesion = _mapper.Map<SesionDTO>(devolverUsuario);
+
+                // Generar el token JWT
+                sesion.Token = _jwtService.GenerateToken(devolverUsuario);
+
+                return sesion;
             }
             catch 
             {
