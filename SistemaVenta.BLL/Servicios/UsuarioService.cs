@@ -117,8 +117,11 @@ namespace SistemaVenta.BLL.Servicios
                     throw new TaskCanceledException("Token expirado");
                 }
 
-                // 2. Obtener el usuario asociado
-                var usuario = await _usuarioRepositorio.Obtener(u => u.IdUsuario == tokenEncontrado.IdUsuario);
+                // 2. Obtener el usuario asociado (CORREGIDO: Incluimos el Rol)
+                // Usamos Consultar + Include para traer la relación
+                var queryUsuario = await _usuarioRepositorio.Consultar(u => u.IdUsuario == tokenEncontrado.IdUsuario);
+                var usuario = queryUsuario.Include(r => r.IdRolNavigation).FirstOrDefault();
+
                 if (usuario == null) throw new TaskCanceledException("Usuario no encontrado");
 
                 // 3. Generar NUEVO JWT
@@ -139,14 +142,15 @@ namespace SistemaVenta.BLL.Servicios
                 };
                 await _refreshTokenRepositorio.Crear(nuevoRefreshToken);
 
-                // 6. Devolver respuesta
+                // 6. Devolver respuesta (CORREGIDO: Agregamos IdUsuario y RolDescripcion)
                 return new SesionDTO
                 {
+                    IdUsuario = usuario.IdUsuario, // <--- Agregado
                     Token = nuevoJwt,
                     RefreshToken = nuevoRefreshToken.Token,
                     NombreCompleto = usuario.NombreCompleto,
                     Correo = usuario.Correo,
-                    // ... otros campos ...
+                    RolDescripcion = usuario.IdRolNavigation != null ? usuario.IdRolNavigation.Nombre : "Sin Rol" // <--- Agregado
                 };
             }
             catch { throw; }
