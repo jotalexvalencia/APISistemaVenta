@@ -2,38 +2,58 @@
 
 ## 📖 Descripción
 
-> Sistema de gestión de ventas desarrollado con arquitectura en capas (N-Tier Architecture). Implementa autenticación moderna mediante **JWT (JSON Web Tokens)** y documentación interactiva con **Scalar**.
+> API REST robusta para la gestión de ventas, desarrollada con **.NET 10** y arquitectura en capas. Implementa estándares modernos de seguridad y documentación interactiva.
+
+## 🛡️ Arquitectura de Seguridad
+
+Este proyecto implementa un sistema de autenticación stateless basado en **JWT (JSON Web Tokens)** con soporte para  **Refresh Tokens** .
+
+**Flujo de Autenticación:**
+
+1. El usuario inicia sesión y recibe un `accessToken` (dura 1 hora) y un `refreshToken` (dura 7 días).
+2. El `accessToken` se usa para acceder a endpoints protegidos.
+3. Cuando el `accessToken` expira, el cliente usa el `refreshToken` para obtener un nuevo par de tokens.
+4. El Refresh Token antiguo se invalida automáticamente en la base de datos (Rotación de Tokens).
+
+**Características de Seguridad:**
+
+* Hasheado de contraseñas con  **BCrypt** .
+* Validación de unique email.
+* Tokens con firma HMAC-SHA256.
 
 ## 🛠️ Stack Tecnológico
 
-* **Backend**: .NET 10, ASP.NET Core Web API, Entity Framework Core.
-* **Frontend**: Angular 17+ (En desarrollo).
-* **Base de Datos**: SQL Server.
-* **Documentación**: Scalar (OpenAPI).
-* **Seguridad**: JWT, Refresh Token (Pendiente).
+* **Backend:** .NET 10, ASP.NET Core Web API.
+* **Base de Datos:** SQL Server.
+* **ORM:** Entity Framework Core.
+* **Documentación:** Scalar (OpenAPI).
+* **Arquitectura:** N-Tier Architecture (API, BLL, DAL, Model, DTO, Utility).
 
-## **🚀 Características Principales**
+## 🚀 Endpoints Clave
 
-* **Autenticación Segura**: Generación de Tokens JWT firmados con HMAC-SHA256.
-* **Autorización por Roles**: Soporte para Administrador, Supervisor y Empleado.
-* **Documentación Interactiva**: Explora la API directamente desde el navegador con Scalar.
-* **Arquitectura Limpia**: Separación de responsabilidades (API, BLL, DAL, Model, DTO).
+### Autenticación
 
-## ⚙️ Instalación y Ejecución
+`POST /api/Usuario/IniciarSesion`
 
-1. **Clonar el repositorio**:
-   `git clone https://github.com/jotalexvalencia/APISistemaVenta.git`
-2. **Configurar la cadena de conexión**:Modificar appsettings.json con tu instancia de SQL Server.
-3. **Ejecutar la API**:
-   `dotnet run`
-4. **Acceder a la documentación**:Navegar a https://localhost:PUERTO/scalar/v1.
+* **Input:** `{ "correo": "string", "clave": "string" }`
+* **Output:** `{ "token": "jwt", "refreshToken": "guid" }`
 
-## 🔐 Endpoint de Prueba (Login)
+`POST /api/Usuario/RenovarToken`
 
-POST /api/Usuario/IniciarSesion
+* **Input:** `"refresh_token_string"` (Raw string)
+* **Output:** Nuevo par de tokens.
 
-`{  "correo": "admin@example.com",  "clave": "tu_clave"}`
+### Usuario
 
+`GET /api/Usuario/Lista` (Requiere Autorización)`POST /api/Usuario/Guardar``PUT /api/Usuario/Editar`
+
+## ⚙️ Instalación
+
+1. Clonar repositorio.
+2. Configurar cadena de conexión en `appsettings.json`.
+3. Ejecutar `dotnet restore`.
+4. Ejecutar `dotnet run`.
+5. Navegar a `/scalar/v1` para ver la documentación.
 
 👤 **Autor**
 **Jorge Alexander Valencia**
