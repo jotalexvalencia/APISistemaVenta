@@ -58,4 +58,4 @@ Este proyecto implementa un sistema de autenticación stateless basado en **JWT 
 👤 **Autor**
 **Jorge Alexander Valencia**
 
-[Linkedin]() | [GitHub](https://github.com/jotalexvalencia)
+[Linkedin](https://www.linkedin.com/in/jorgealexandervalencia/) | [GitHub](https://github.com/jotalexvalencia)
