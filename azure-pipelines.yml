@@ -1,0 +1,20 @@
+trigger:
+- main # Se activa cuando haces push a la rama 'main'
+
+pool:
+  vmImage: 'ubuntu-latest' # Usamos una máquina Linux (estándar de la industria)
+
+steps:
+- script: echo Compilando el proyecto...
+  displayName: 'Mensaje Inicial'
+
+- task: UseDotNet@2 # Aseguramos tener .NET instalado
+  inputs:
+    packageType: 'sdk'
+    version: '10.x' # ¡Tu versión .NET 10!
+
+- script: dotnet restore
+  displayName: 'Restaurar Paquetes'
+
+- script: dotnet build --configuration Release
+  displayName: 'Compilar Proyecto'
