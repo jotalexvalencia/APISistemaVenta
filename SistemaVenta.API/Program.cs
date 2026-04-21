@@ -1,5 +1,7 @@
 using SistemaVenta.IOC;
-using Scalar.AspNetCore; // <--- Importante
+using Scalar.AspNetCore;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,31 +14,69 @@ builder.Services.AddOpenApi();
 builder.Services.InyectarDependencias(builder.Configuration);
 
 // --- Configuración CORS ---
-builder.Services.AddCors(options => {
-    options.AddPolicy("NuevaPolitica", app => {
-        app.AllowAnyOrigin()
-        .AllowAnyHeader()
-        .AllowAnyMethod();
+builder.Services.AddCors(options =>
+{
+    // Política para desarrollo local
+    options.AddPolicy("DesarrolloLocal", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .WithMethods("GET", "POST", "PUT", "DELETE")
+            .WithHeaders("Authorization", "Content-Type");
+    });
+
+    // Política para producción
+    // TODO: Reemplazar con URL real al hacer deploy
+    options.AddPolicy("Produccion", policy =>
+    {
+        policy
+            .WithOrigins("https://appsistemaventa.azurewebsites.net")
+            .WithMethods("GET", "POST", "PUT", "DELETE")
+            .WithHeaders("Authorization", "Content-Type")
+            .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
     });
 });
 
 // --- Configuración JWT ---
-builder.Services.AddScoped<SistemaVenta.Utility.Seguridad.IJwtService, SistemaVenta.Utility.Seguridad.JwtService>();
+builder.Services.AddScoped<SistemaVenta.Utility.Seguridad.IJwtService,
+    SistemaVenta.Utility.Seguridad.JwtService>();
 
-builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+// JWT Key sin fallback hardcodeado — falla explícita si no está configurada
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException(
+        "JWT Key no configurada. Verifica appsettings o variables de entorno.");
+
+builder.Services.AddAuthentication(
+    Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "Clave_De_Respaldo_Segura_123"))
-    };
+        options.TokenValidationParameters =
+            new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                IssuerSigningKey =
+                    new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                        System.Text.Encoding.UTF8.GetBytes(jwtKey))
+            };
+    });
+
+// --- Rate Limiting ---
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("ApiLimit", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 5;
+    });
+
+    options.RejectionStatusCode = 429;
 });
 
 var app = builder.Build();
@@ -44,16 +84,32 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    // 2. Configurar Scalar
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
 
-app.UseCors("NuevaPolitica");
+// --- Security Headers ---
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Permissions-Policy",
+        "camera=(), microphone=(), geolocation=()");
+    await next();
+});
 
+// --- CORS por ambiente ---
+if (app.Environment.IsDevelopment())
+    app.UseCors("DesarrolloLocal");
+else
+    app.UseCors("Produccion");
+
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("ApiLimit");
 
 app.Run();
