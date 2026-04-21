@@ -29,7 +29,7 @@ namespace SistemaVenta.IOC
             services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));// modelo generico
             services.AddScoped<IVentaRepository, VentaRepository>();//modelo exacto
 
-            services.AddAutoMapper(typeof(AutoMapperProfile));
+            services.AddAutoMapper(cfg => cfg.AddProfile<AutoMapperProfile>());
 
             services.AddScoped<IRolService,RolService>();
             services.AddScoped<IUsuarioService,UsuarioService>();
