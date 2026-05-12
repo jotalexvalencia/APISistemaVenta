@@ -4,6 +4,8 @@
 
 [![.NET 10](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com)
 [![Docker](https://img.shields.io/badge/Docker-✅-2496ED)](https://www.docker.com)
+[![Docker Image](https://img.shields.io/docker/v/alexjuniortupapa/apisistemaventa-api?label=Docker%20Hub&color=0db7ed)](https://hub.docker.com/r/alexjuniortupapa/apisistemaventa-api)
+[![Docker Pulls](https://img.shields.io/docker/pulls/alexjuniortupapa/apisistemaventa-api)](https://hub.docker.com/r/alexjuniortupapa/apisistemaventa-api)
 [![SQL Server](https://img.shields.io/badge/SQL_Server-2022-red)](https://www.microsoft.com/sql-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
