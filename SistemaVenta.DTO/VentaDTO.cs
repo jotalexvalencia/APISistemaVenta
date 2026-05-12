@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SistemaVenta.DTO
+﻿namespace SistemaVenta.DTO
 {
-    public class VentaDTO
+    /// <summary>
+    /// Represents a sales transaction, including its identifying information, payment details, total amount,
+    /// registration date, and associated sale items.
+    /// </summary>
+    /// <remarks>The DetalleVenta collection is initialized to an empty list to ensure it is always ready for
+    /// use and to prevent null reference exceptions when adding sale item details. This record is typically used to
+    /// transfer sale data between application layers or services.</remarks>
+    public record VentaDTO
     {
         public int IdVenta { get; set; }
 
@@ -18,7 +19,8 @@ namespace SistemaVenta.DTO
 
         public string? FechaRegistro { get; set; }
 
-        public virtual ICollection<DetalleVentaDTO> DetalleVenta { get; set; }
+        // Initialized collection to prevent null reference exceptions when adding items to the collection.
+        public virtual ICollection<DetalleVentaDTO> DetalleVenta { get; set; } = new List<DetalleVentaDTO>();
 
     }
 }

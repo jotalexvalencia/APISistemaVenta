@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SistemaVenta.DTO
+﻿namespace SistemaVenta.DTO
 {
-    public class LoginDTO
+    /// <summary>
+    /// Represents a data transfer object that encapsulates user login credentials, including the email address and
+    /// password.
+    /// </summary>
+    /// <remarks>Both the email and password properties are optional and may be null. This record is typically
+    /// used to transmit authentication information between client and server during login operations.</remarks>
+    public record LoginDTO
     {
-        public string? Correo { get; set; }
-        public string? Clave { get; set; }
+        public string? Correo { get; init; }
+        public string? Clave { get; init; }
     }
 }

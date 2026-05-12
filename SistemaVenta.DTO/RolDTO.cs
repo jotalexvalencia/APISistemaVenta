@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SistemaVenta.DTO
+﻿namespace SistemaVenta.DTO
 {
-    public class RolDTO
+    /// <summary>
+    /// Represents a data transfer object that encapsulates the identifier and name of a role.
+    /// </summary>
+    /// <remarks>Use this record to transfer role information between application layers, such as between the
+    /// data access and presentation layers. This type is typically used in scenarios where only the essential role data
+    /// is required, without exposing domain or persistence details.</remarks>
+    public record RolDTO
     {
-        public int IdRol { get; set; }
+        public int IdRol { get; init; }
 
-        public string? Nombre { get; set; }
+        public string? Nombre { get; init; }
     }
 }

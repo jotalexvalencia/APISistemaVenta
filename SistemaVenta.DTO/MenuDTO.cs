@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SistemaVenta.DTO
+﻿namespace SistemaVenta.DTO
 {
-    public class MenuDTO
+    /// <summary>
+    /// Represents a menu item that contains identification, display name, icon, and navigation URL information for use
+    /// in user interface components.
+    /// </summary>
+    /// <remarks>Use this record to encapsulate the details of a menu option when building navigation
+    /// structures or rendering menus in applications. Each property provides essential information for displaying and
+    /// linking menu items within the UI.</remarks>
+    public record MenuDTO
     {
         public int IdMenu { get; set; }
 

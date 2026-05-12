@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SistemaVenta.DTO
+﻿namespace SistemaVenta.DTO
 {
-    public class DetalleVentaDTO
+    /// <summary>
+    /// Represents the details of a sale transaction, including product information and pricing.
+    /// </summary>
+    /// <remarks>This record is used to encapsulate the information related to a specific product in a sale,
+    /// such as its ID, description, quantity, and pricing details. The properties are nullable to accommodate scenarios
+    /// where certain details may not be available.</remarks>
+    public record DetalleVentaDTO
     {
         public int? IdProducto { get; set; }
 

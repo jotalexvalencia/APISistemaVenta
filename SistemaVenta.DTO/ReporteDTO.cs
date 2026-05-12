@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SistemaVenta.DTO
+﻿namespace SistemaVenta.DTO
 {
-    public class ReporteDTO
+    /// <summary>
+    /// Represents a data transfer object that encapsulates the details of a sales transaction report, including
+    /// document number, payment type, registration date, total sale amount, product information, quantity, price, and
+    /// total per item.
+    /// </summary>
+    /// <remarks>This record is intended for use in scenarios where transaction report data needs to be
+    /// transferred between application layers or external systems. It provides a structured format for reporting and
+    /// analyzing sales transactions, facilitating integration and data manipulation in sales management
+    /// solutions.</remarks>
+    public record ReporteDTO
     {
         public string? NumeroDocumento { get; set; }
         public string? TipoPago { get; set; }

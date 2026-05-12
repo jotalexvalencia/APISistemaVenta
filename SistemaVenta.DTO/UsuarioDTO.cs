@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SistemaVenta.DTO
+﻿namespace SistemaVenta.DTO
 {
-    public class UsuarioDTO
+    /// <summary>
+    /// Represents a data transfer object that encapsulates user information, including identification, contact details,
+    /// role, and status.
+    /// </summary>
+    /// <remarks>This record is intended for transferring user data between application layers. The Clave
+    /// property should only be set during user creation or update operations and must remain null when retrieving user
+    /// data to ensure security.</remarks>
+    public record UsuarioDTO
     {
         public int IdUsuario { get; set; }
 
@@ -18,7 +19,7 @@ namespace SistemaVenta.DTO
 
         public string? RolDescripcion { get; set; }
 
-        // AGREGAMOS ESTO DE NUEVO:
+        // Used for creation/update. Should be null when retrieving user data for security reasons.
         public string? Clave { get; set; } 
 
         public int? EsActivo { get; set; }
