@@ -1,0 +1,52 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sistemaventa-sqlserver
+    environment:
+      # Usamos variables del archivo .env para seguridad
+      SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      # ⚠️ ESTO ES LO IMPORTANTE:
+      # "sqldata" es el nombre de la caja fuerte.
+      # "/var/opt/mssql" es donde SQL Server guarda sus archivos dentro del contenedor.
+      # Esto asegura que tus datos NO se borren.
+      - sqldata:/var/opt/mssql
+      
+      # Opcional: Si quieres que el script de creación de tablas corra automáticamente la primera vez:
+      # - ./database/init:/docker-entrypoint-initdb.d
+      
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${MSSQL_SA_PASSWORD}", "-Q", "SELECT 1", "-C"]
+      interval: 10s
+      retries: 10
+      start_period: 30s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sistemaventa-api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      # Conexión a la BD usando variables de entorno
+      ConnectionStrings__cadenaSQL: "Server=sqlserver,1433;Database=DBVENTAngular;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+      Jwt__Key: "${JWT_KEY}"
+      Jwt__Issuer: "SistemaVentaAPI"
+      Jwt__Audience: "SistemaVentaClient"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: on-failure
+
+# ⚠️ DEFINICIÓN DE VOLÚMENES (Al final del archivo, fuera de services)
+volumes:
+  sqldata:
+    # Esto le dice a Docker que cree y mantenga el volumen "sqldata"
+    driver: local

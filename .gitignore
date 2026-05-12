@@ -360,4 +360,8 @@ MigrationBackup/
 .ionide/
 
 # Fody - auto-generated XML schema
-FodyWeavers.xsd
+FodyWeavers.xsd 
+
+# Ignorar archivos de entorno reales (contienen secretos)
+.env
+!.env.example
