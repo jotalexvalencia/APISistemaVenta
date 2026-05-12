@@ -1,4 +1,3 @@
-```markdown
 # Sistema de Ventas — API .NET 10
 
 > API REST robusta para gestión de ventas, desarrollada con **.NET 10**, **Entity Framework Core** y **SQL Server**. Implementa autenticación JWT con Refresh Tokens, arquitectura en capas y está containerizada con Docker para consistencia entre entornos.
