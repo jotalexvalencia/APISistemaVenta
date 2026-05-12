@@ -1,0 +1,71 @@
+# =========================================
+# 🗑️ ARCHIVOS DE BUILD Y TEMPORALES
+# =========================================
+# Estos se generan al compilar, NO deben ir en la imagen
+# Incluirlos aumentaría el tamaño innecesariamente y podría causar conflictos
+**/bin/
+**/obj/
+**/out/
+
+# =========================================
+# 💻 ENTORNOS DE DESARROLLO Y SISTEMA OPERATIVO
+# =========================================
+# Configuraciones locales de tu máquina, no relevantes para el contenedor
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+Thumbs.db
+.DS_Store
+
+# =========================================
+# 🌿 CONTROL DE VERSIONES
+# =========================================
+# El repositorio Git ya maneja esto, no lo duplicamos en Docker
+.git/
+.gitignore
+.gitattributes
+
+# =========================================
+# 🐳 ARCHIVOS DE DOCKER (evitar recursividad)
+# =========================================
+# No queremos que Docker copie estos archivos DENTRO de la imagen
+# porque ya los estamos usando PARA construir la imagen
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# =========================================
+# 🔐 SECRETOS Y CONFIGURACIONES SENSIBLES
+# =========================================
+# ⚠️ NUNCA incluyas archivos con contraseñas reales en la imagen
+# Usa variables de entorno o docker secrets en producción
+**/appsettings.Development.json
+**/appsettings.Local.json
+.env
+.env.*
+!.env.example  # ✅ Permitimos el ejemplo para documentación
+
+# =========================================
+# 📋 LOGS Y ARCHIVOS TEMPORALES
+# =========================================
+# Archivos que se generan en tiempo de ejecución, no en build
+**/*.log
+**/logs/
+**/TestResults/
+
+# =========================================
+# 📚 DOCUMENTACIÓN Y ARCHIVOS DE IA
+# =========================================
+# Útiles para desarrollar, pero no necesarios para ejecutar la app
+docs/
+README.md
+*.md
+
+# =========================================
+# 🟦 FRONTEND (por si integras Angular después)
+# =========================================
+# Si dockerizas el frontend aparte, excluye sus dependencias del backend
+**/node_modules/
+**/dist/
