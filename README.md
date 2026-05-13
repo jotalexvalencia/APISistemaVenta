@@ -2,6 +2,7 @@
 
 > API REST robusta para gestión de ventas, desarrollada con **.NET 10**, **Entity Framework Core** y **SQL Server**. Implementa autenticación JWT con Refresh Tokens, arquitectura en capas y está containerizada con Docker para consistencia entre entornos.
 
+[![Build Status](https://dev.azure.com/jorgealexandervalencia/SistemaVenta-API/_apis/build/status%2FDemo-NET-Core?branchName=main)](https://dev.azure.com/jorgealexandervalencia/SistemaVenta-API/_build)
 [![.NET 10](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com)
 [![Docker](https://img.shields.io/badge/Docker-✅-2496ED)](https://www.docker.com)
 [![Docker Image](https://img.shields.io/docker/v/alexjuniortupapa/apisistemaventa-api?label=Docker%20Hub&color=0db7ed)](https://hub.docker.com/r/alexjuniortupapa/apisistemaventa-api)
