@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # 🗄️ SQL Server 2022
+  # =============================================================================
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sistemaventa-sqlserver
+    environment:
+      # ✅ Nueva convención de Microsoft (SA_PASSWORD está deprecado)
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      # ✅ Escape correcto de variables: $${VAR} para docker-compose
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C || exit 1"]
+      interval: 10s
+      retries: 10
+      start_period: 30s
+      timeout: 5s
+    networks:
+      - sistemaventa-net
+
+  # =============================================================================
+  # ⚙️ API .NET 10
+  # =============================================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sistemaventa-api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      # ✅ Globalización habilitada para Alpine + SQL Client
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "false"
+      # ✅ Connection string con nombre de servicio Docker
+      ConnectionStrings__cadenaSQL: "Server=sqlserver,1433;Database=DBVENTAngular;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+      Jwt__Key: "${JWT_KEY}"
+      Jwt__Issuer: "SistemaVentaAPI"
+      Jwt__Audience: "SistemaVentaClient"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - sistemaventa-net
+
+# =============================================================================
+# 🌐 Redes
+# =============================================================================
+networks:
+  sistemaventa-net:
+    driver: bridge
+
+# =============================================================================
+# 💾 Volúmenes
+# =============================================================================
+volumes:
+  sqldata:
+    driver: local
