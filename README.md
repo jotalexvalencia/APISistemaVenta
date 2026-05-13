@@ -13,15 +13,15 @@
 
 ## 📖 Descripción
 
-Este backend proporciona endpoints REST para un sistema de ventas completo: autenticación de usuarios, gestión de productos, categorías, registro de ventas y reportes. Diseñado con principios de Clean Architecture y preparado para despliegue reproducible con Docker.
+Este backend proporciona endpoints REST para un sistema de ventas completo: autenticación de usuarios, gestión de productos, categorías, registro de ventas y reportes. Diseñado con principios de arquitectura en capas y preparado para despliegue reproducible con Docker.
 
 **Características principales:**
-- ✅ Autenticación stateless con JWT + Refresh Token rotation
+- ✅ Autenticación stateless con JWT + Refresh Token con persistencia en BD
 - ✅ Hashing de contraseñas con BCrypt
-- ✅ Validación de datos con Data Annotations + FluentValidation
+- ✅ Validación de datos con Data Annotations
 - ✅ Documentación interactiva con Scalar (OpenAPI)
 - ✅ Arquitectura N-Tier: API → BLL → DAL → Model/DTO
-- ✅ Docker multi-stage para imágenes ligeras (~180MB)
+- ✅ Docker multi-stage + Alpine + ICU para globalización (~180MB)
 
 ---
 
@@ -50,7 +50,7 @@ sequenceDiagram
         Cliente->>API: POST /api/Usuario/RenovarToken <refreshToken>
         API->>BD: Validar refreshToken + no revocado
         API->>API: Generar nuevo par de tokens
-        API->>BD: Invalidar refreshToken anterior (rotación)
+        API->>BD: Invalidar refreshToken anterior
         API-->>Cliente: { nuevo token, nuevo refreshToken }
     end
 ```
@@ -61,7 +61,7 @@ sequenceDiagram
 |--------|---------------|-----------|
 | **BCrypt hashing** | `BCrypt.Net.BCrypt.HashPassword()` | Protección contra rainbow tables |
 | **JWT HMAC-SHA256** | Firma con clave secreta en variables de entorno | Integridad y autenticidad del token |
-| **Refresh Token rotation** | Invalidación en BD al usar refreshToken | Mitiga robo de tokens |
+| **Refresh Token con persistencia** | Invalidación en BD al usar refreshToken | Mitiga robo de tokens |
 | **CORS policies** | Políticas por ambiente (`DesarrolloLocal`, `Produccion`) | Previene ataques CSRF desde orígenes no autorizados |
 | **Rate limiting** | `AddRateLimiter` con 100 req/min por cliente | Protege contra fuerza bruta y abuso |
 | **Security headers** | Middleware personalizado (`X-Content-Type-Options`, etc.) | Previene clickjacking, XSS, MIME sniffing |
@@ -79,7 +79,7 @@ sequenceDiagram
 | **Documentación** | Scalar (OpenAPI 3.0) | Latest |
 | **Mapeo** | AutoMapper | 16.x |
 | **Testing** | xUnit + Moq | Latest |
-| **Containerización** | Docker multi-stage + Alpine | - |
+| **Containerización** | Docker multi-stage + Alpine + ICU | - |
 
 ---
 
@@ -146,12 +146,13 @@ dotnet run
 cp .env.example .env
 # ⚠️ Editar .env con valores seguros. NUNCA commitear .env con secrets reales.
 
-# 2. Levantar stack completo (API + SQL Server)
+# 2. Levantar stack completo desde raíz del proyecto
+cd MVCCOREANGULAR
 docker-compose up -d
 
 # 3. Verificar estado
 docker-compose ps
-# Esperar: sqlserver (healthy), api (Up)
+# Esperar: sqlserver (healthy), api (Up), frontend (Up)
 
 # 4. Acceder a la API
 # http://localhost:8080/scalar/v1
@@ -178,10 +179,10 @@ docker-compose logs sqlserver
 
 ```
 ┌─────────────────────────────────────┐
-│   docker-compose.yml                │
+│   docker-compose.yml (raíz)         │
 │   ┌─────────────┐ ┌─────────────┐  │
 │   │   api       │ │ sqlserver   │  │
-│   │  (Alpine)   │ │ (2022-dev)  │  │
+│   │  (Alpine+ICU)│ │ (2022-dev)  │  │
 │   │  ~180MB     │ │ + volume    │  │
 │   └──────┬──────┘ └──────┬──────┘  │
 │          │               │          │
@@ -193,14 +194,15 @@ docker-compose logs sqlserver
 └─────────────────────────────────────┘
 ```
 
-### Optimizaciones del Dockerfile
+### Optimizaciones del Dockerfile (Correcciones aplicadas)
 
 | Técnica | Implementación | Beneficio |
 |---------|---------------|-----------|
 | **Multi-stage build** | Stage `build` (SDK) + `runtime` (ASP.NET) | Imagen final ~180MB vs ~900MB sin optimizar |
-| **Alpine Linux** | `mcr.microsoft.com/dotnet/sdk:10.0-alpine` | Menor superficie de ataque + descarga más rápida |
+| **Alpine + ICU** | `apk add icu-libs icu-data-full` | Soporte de globalización para `Microsoft.Data.SqlClient` |
 | **Layer caching** | COPY `.csproj` antes que `COPY . .` | Build incremental: solo recompila si cambia código |
-| **Non-root user** | `adduser -D appuser` + `USER appuser` | Cumple principio de mínimo privilegio |
+| **Non-root user** | `adduser -D appuser` + `COPY --chown` + `USER appuser` | Cumple principio de mínimo privilegio |
+| **Globalización explícita** | `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false` | Evita errores de cultura en Alpine |
 | **.dockerignore** | Excluye `bin/`, `obj/`, `.git`, `docs/` | Contexto pequeño (~50MB) → build 10x más rápido |
 
 ### Comandos útiles de Docker
@@ -226,13 +228,14 @@ docker-compose down -v  # El -v elimina el volumen sqldata
 
 ## 🧪 Evidencia de Implementación
 
-- ✅ JWT con Refresh Token rotation (invalidación en BD al usar)
+- ✅ JWT con Refresh Token con persistencia en BD (invalidación al usar)
 - ✅ BCrypt para hashing de contraseñas (60-char hashes en `varchar(255)`)
 - ✅ Healthcheck nativo en SQL Server + `depends_on: condition: service_healthy`
-- ✅ Imagen multi-stage Alpine: ~180MB vs ~900MB sin optimizar
+- ✅ Imagen multi-stage Alpine + ICU: ~180MB vs ~900MB sin optimizar
 - ✅ CORS policies segregadas por ambiente (`DesarrolloLocal` vs `Produccion`)
 - ✅ Rate limiting nativo (.NET 7+) con 100 req/min por cliente
 - ✅ Security headers personalizados (`X-Content-Type-Options`, `X-Frame-Options`, etc.)
+- ✅ Globalización habilitada para Alpine + SQL Client
 - ✅ Documentación técnica profunda en `/docs/docker/`
 
 ---
@@ -248,8 +251,8 @@ Para detalles de implementación Docker (multi-stage, caching, networking, troub
 | `/docs/docker/04-docker-compose.md` | Orquestación de servicios: redes, dependencias, volúmenes |
 | `/docs/docker/05-troubleshooting.md` | Flujo de diagnóstico: comandos, errores reales y soluciones |
 
-> 📌 **Nivel de dominio (ENGRAM)**: 🔄 Lo puedo repetir sin ayuda  
-> *Honestidad técnica: Implementado guiado, con comprensión de trade-offs y diagnóstico. Pendiente: aplicar en pipeline de CI/CD con registry y despliegue automático.*
+> 📌 **Nivel de dominio (ENGRAM)**: 🔄 Lo puedo repetir con checklist propio  
+> *Honestidad técnica: Implementado guiado con comprensión de trade-offs (ICU, MSSQL_SA_PASSWORD, globalización). Pendiente: aplicar en pipeline de CI/CD con registry y despliegue automático.*
 
 ---
 
@@ -272,6 +275,10 @@ docker exec sistemaventa-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U
 # Puerto 8080 ya está en uso
 netstat -ano | findstr :8080  # Ver PID
 taskkill /PID <PID> /F         # O cambiar puerto en compose: "8081:8080"
+
+# Error de globalización en Alpine
+# → Verificar que Dockerfile tiene: apk add icu-libs icu-data-full
+# → Verificar que environment tiene: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 ```
 
 ---
@@ -288,5 +295,4 @@ Desarrollador de Software — Colombia
 ---
 
 > 📄 **Licencia**: MIT — Libre uso con atribución.  
-> 🔄 **Última actualización**: Mayo 2026 — .NET 10 + Docker multi-stage + Alpine
-```
+> 🔄 **Última actualización**: Mayo 2026 — .NET 10 + Docker multi-stage + Alpine + ICU + MSSQL_SA_PASSWORD
