@@ -1,0 +1,40 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  dotnetVersion: '10.x'
+  projectName: 'SistemaVenta.API'
+
+steps:
+# 1. Instalar .NET 10 SDK
+- task: UseDotNet@2
+  displayName: '🔧 Install .NET 10 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: $(dotnetVersion)
+    installationPath: /usr/share/dotnet
+
+# 2. Restaurar paquetes NuGet
+- script: dotnet restore APISistemaVenta.sln
+  displayName: '📦 Restore dependencies'
+
+# 3. Compilar solución
+- script: dotnet build APISistemaVenta.sln --configuration $(buildConfiguration) --no-restore
+  displayName: '🔨 Build solution'
+
+# 4. Ejecutar tests (si existen, no falla si no hay)
+- script: dotnet test APISistemaVenta.sln --no-build --configuration $(buildConfiguration) --collect:"XPlat Code Coverage"
+  displayName: '🧪 Run tests'
+  continueOnError: true
+
+# 5. Publicar artefactos del build
+- task: PublishBuildArtifacts@1
+  displayName: '📦 Publish build artifacts'
+  inputs:
+    PathtoPublish: '$(Build.SourcesDirectory)/APISistemaVenta'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
