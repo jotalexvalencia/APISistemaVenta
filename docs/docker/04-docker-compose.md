@@ -1,6 +1,36 @@
 # 04 — Orquestación con Docker Compose
 
-> **Nota:** Este documento documenta el `docker-compose.yml` REAL que está en tu repositorio `APISistemaVenta/` (o raíz `MVCCOREANGULAR/`). No es teoría genérica.
+> **Nota:** Este documento documenta el `docker-compose.yml` REAL que está en tu repositorio `APISistemaVenta/`. No es teoría genérica.
+
+---
+
+## 🗂️ Estructura actual (Mayo 2026)
+
+El archivo `docker-compose.yml` reside en el repositorio del backend (`APISistemaVenta/`) y orquesta los 3 servicios del stack completo:
+
+```text
+APISistemaVenta/
+├── docker-compose.yml      ← Orquestación: api + sqlserver + frontend
+├── Dockerfile              ← Backend .NET 10
+├── .env.example            ← Plantilla de variables de entorno
+└── docs/docker/            ← Documentación técnica
+```
+
+**Para levantar todo el stack:**
+
+```powershell
+# 1. Clonar ambos repos en la misma carpeta contenedora
+git clone https://github.com/jotalexvalencia/APISistemaVenta.git
+git clone https://github.com/jotalexvalencia/AppSistemaVenta.git
+
+# 2. Desde el backend, levantar compose
+cd APISistemaVenta
+docker-compose up -d
+```
+
+**Rutas relativas en docker-compose.yml:**
+- `context: .` → Backend (misma carpeta que el compose)
+- `context: ../AppSistemaVenta` → Frontend (carpeta hermana)
 
 ---
 
@@ -55,7 +85,7 @@ La decisión de usar Docker Compose para orquestar este stack responde a trade-o
 ### 📄 `docker-compose.yml` completo (tal cual está en tu repo)
 
 ```yaml
-version: '3.8'
+# Sin línea version: Docker Compose v2+ no la requiere
 
 services:
   # =============================================================================
@@ -65,21 +95,19 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sistemaventa-sqlserver
     environment:
-      # Variables inyectadas desde .env (NO hardcodear aquí)
-      SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
       ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
       MSSQL_PID: "Developer"
     ports:
-      - "1433:1433"  # Mapeo para herramientas externas (SSMS, Azure Data Studio)
+      - "1433:1433"
     volumes:
-      # Named volume para persistencia de datos
       - sqldata:/var/opt/mssql
     healthcheck:
-      # Verifica que SQL Server acepte consultas antes de considerar el servicio "healthy"
-      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${MSSQL_SA_PASSWORD}", "-Q", "SELECT 1", "-C"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C || exit 1"]
       interval: 10s
       retries: 10
-      start_period: 30s  # Tiempo de gracia para que SQL Server inicie (~20-25s reales)
+      start_period: 30s
+      timeout: 5s
     networks:
       - sistemaventa-net
 
@@ -88,23 +116,23 @@ services:
   # =============================================================================
   api:
     build:
-      context: ./APISistemaVenta  # Ruta relativa desde donde ejecutas docker-compose
+      context: .
       dockerfile: Dockerfile
     container_name: sistemaventa-api
     ports:
-      - "8080:8080"  # Host:Contenedor
+      - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:8080"
-      # 🔥 CRÍTICO: Connection string usando NOMBRE DE SERVICIO, no localhost
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "false"
       ConnectionStrings__cadenaSQL: "Server=sqlserver,1433;Database=DBVENTAngular;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
       Jwt__Key: "${JWT_KEY}"
       Jwt__Issuer: "SistemaVentaAPI"
       Jwt__Audience: "SistemaVentaClient"
     depends_on:
       sqlserver:
-        condition: service_healthy  # Espera a que healthcheck de SQL Server pase
-    restart: on-failure  # Reinicia automáticamente si la API falla
+        condition: service_healthy
+    restart: on-failure
     networks:
       - sistemaventa-net
 
@@ -113,16 +141,13 @@ services:
   # =============================================================================
   frontend:
     build:
-      context: ./AppSistemaVenta
+      context: ../AppSistemaVenta
       dockerfile: Dockerfile
     container_name: sistemaventa-frontend
     ports:
-      - "4200:80"  # Angular en host:4200 → Nginx en contenedor:80
-    environment:
-      # Variable opcional para inyectar endpoint en runtime (si implementas window.env)
-      - API_BASE_URL=http://api:8080
+      - "4200:80"
     depends_on:
-      - api  # Espera a que la API esté corriendo (no healthcheck, pero es un inicio)
+      - api
     restart: on-failure
     networks:
       - sistemaventa-net
@@ -132,13 +157,13 @@ services:
 # =============================================================================
 networks:
   sistemaventa-net:
-    driver: bridge  # Red interna: los servicios se comunican por nombre, no por IP
+    driver: bridge
 
 # =============================================================================
 # 💾 Volúmenes
 # =============================================================================
 volumes:
-  sqldata:  # Named volume gestionado por Docker
+  sqldata:
     driver: local
 ```
 
@@ -159,6 +184,11 @@ MSSQL_SA_PASSWORD=Tu_Clave_Segura_2026!
 # =============================================================================
 # Clave secreta para firmar tokens JWT (mínimo 32 caracteres recomendados)
 JWT_KEY=Mi_Clave_Secreta_Super_Larga_Y_Segura_Para_Generar_Tokens_2026
+
+# =============================================================================
+# .NET Globalization (requerido para Alpine + SQL Server)
+# =============================================================================
+DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 ```
 
 ### 📄 `environment.ts` del frontend (configuración para Docker Compose)
@@ -167,17 +197,27 @@ JWT_KEY=Mi_Clave_Secreta_Super_Larga_Y_Segura_Para_Generar_Tokens_2026
 // src/environments/environment.ts
 export const environment = {
     production: false,
-    // Para docker-compose: el frontend se comunica con la API por NOMBRE DE SERVICIO
-    endpoint: "http://api:8080/api/"
     
-    // Para desarrollo SIN docker-compose (frontend en Docker, API en host):
-    // endpoint: "http://host.docker.internal:8080/api/"
+    // ✅ Para Docker Compose: Nginx proxy maneja /api → api:8080
+    // El navegador llama a http://localhost:4200/api/* y Nginx redirige a api:8080
+    endpoint: "/api/"
+    
+    // ✅ Para desarrollo local SIN Docker Compose:
+    // endpoint: "http://localhost:8080/api/"
 };
+
+/*
+⚠️ IMPORTANTE: El código Angular se ejecuta en el navegador del usuario, 
+no dentro de Docker. Por eso no puede resolver nombres de servicios como 'api'.
+La solución es usar el proxy de Nginx (/api/) que redirige las peticiones 
+al contenedor correcto.
+*/
 ```
 
 > ⚠️ **Nota crítica:** Dentro de la red Docker (`sistemaventa-net`), los contenedores se resuelven por **nombre de servicio**, no por `localhost`. 
 > - `localhost` dentro de un contenedor = el contenedor mismo
 > - `api` dentro de la red = el contenedor del servicio `api`
+> - Pero el **navegador** NO está en la red Docker → usa proxy Nginx (`/api/`)
 
 ---
 
@@ -187,29 +227,31 @@ export const environment = {
 
 | Línea/Sección | Propósito | ¿Qué pasa si lo quito/cambio? |
 |---------------|-----------|------------------------------|
-| `healthcheck: test: ["CMD", "sqlcmd", ... "SELECT 1"]` | Verifica que SQL Server acepte consultas reales, no solo que el proceso corre | ❌ Sin healthcheck, `depends_on: condition: service_healthy` no funciona. La API intenta conectarse antes de que SQL Server esté listo → error "connection refused" |
-| `start_period: 30s` | Da tiempo a SQL Server para iniciar (tarda ~20-25s en Alpine) | ⚠️ Si reduces a 10s, el healthcheck puede fallar antes de que SQL Server esté listo → reinicios en bucle |
+| `healthcheck: test: ["CMD-SHELL", "sqlcmd ... SELECT 1"]` | Verifica que SQL Server acepte consultas reales | ❌ Sin healthcheck, `depends_on: condition: service_healthy` no funciona. La API intenta conectarse antes de que SQL Server esté listo → error "connection refused" |
+| `start_period: 30s` | Da tiempo a SQL Server para iniciar (~20-25s reales) | ⚠️ Si reduces a 10s, el healthcheck puede fallar antes de que SQL Server esté listo → reinicios en bucle |
 | `volumes: - sqldata:/var/opt/mssql` | Persiste datos en volumen gestionado por Docker | ❌ Sin esto, cada `docker-compose down` borra TODA la base de datos. Pérdida total de datos |
 | `networks: - sistemaventa-net` | Conecta a la red interna para comunicación con API | ❌ Sin red compartida, la API no puede resolver `Server=sqlserver,1433` → error "Name or service not known" |
+| `MSSQL_SA_PASSWORD` (no `SA_PASSWORD`) | Nueva convención oficial de Microsoft | ✅ Evita deprecación futura y asegura compatibilidad con versiones recientes de SQL Server |
 
 ### ⚙️ Servicio `api`
 
 | Línea/Sección | Propósito | ¿Qué pasa si lo quito/cambio? |
 |---------------|-----------|------------------------------|
-| `build: context: ./APISistemaVenta` | Indica dónde está el Dockerfile del backend | ❌ Si la ruta es incorrecta, `docker-compose build` falla con "context not found" |
-| `ConnectionStrings__cadenaSQL: "Server=sqlserver,1433;..."` | Connection string usando NOMBRE DE SERVICIO | ❌ Si usas `localhost` aquí, la API intenta conectarse a sí misma, no a SQL Server → error de conexión |
+| `build: context: .` | Indica que el Dockerfile está en la misma carpeta que compose | ❌ Si la ruta es incorrecta, `docker-compose build` falla con "context not found" |
+| `ConnectionStrings__cadenaSQL: "Server=sqlserver,1433;..."` | Connection string usando NOMBRE DE SERVICIO Docker | ❌ Si usas `localhost` aquí, la API intenta conectarse a sí misma, no a SQL Server → error de conexión |
+| `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "false"` | Habilita soporte de globalización en Alpine | ❌ Sin esto, `Microsoft.Data.SqlClient` puede fallar con errores de cultura en Alpine Linux |
 | `depends_on: sqlserver: condition: service_healthy` | Espera a que SQL Server pase healthcheck antes de iniciar API | ⚠️ Si quitas `condition: service_healthy`, la API puede iniciar antes que SQL Server esté listo → errores intermitentes al arranque |
-| `restart: on-failure` | Reinicia automáticamente si la API crashea | ✅ Útil para desarrollo. En producción, considerar políticas más estrictas o orquestador con healthchecks |
+| `restart: on-failure` | Reinicia automáticamente si la API crashea | ✅ Útil para desarrollo. En producción, considerar políticas más estrictas |
 | `Jwt__Key: "${JWT_KEY}"` | Inyecta clave JWT desde variable de entorno | ❌ Si hardcodeas aquí, la clave queda en el compose file (riesgo de commit accidental) |
 
 ### 🌐 Servicio `frontend`
 
 | Línea/Sección | Propósito | ¿Qué pasa si lo quito/cambio? |
 |---------------|-----------|------------------------------|
-| `build: context: ./AppSistemaVenta` | Indica dónde está el Dockerfile del frontend | ❌ Si la ruta es incorrecta, build falla |
+| `build: context: ../AppSistemaVenta` | Indica que el frontend está en carpeta hermana | ❌ Si la ruta es incorrecta, build falla con "context not found" |
 | `ports: - "4200:80"` | Mapea puerto host 4200 → puerto contenedor 80 (Nginx) | ⚠️ Si cambias a `"80:80"`, el frontend ocupa puerto 80 del host (puede conflictuar con IIS u otros servicios) |
-| `depends_on: - api` | Espera a que el servicio `api` esté corriendo (no healthy) | ⚠️ No espera healthcheck de la API. Si la API tarda en iniciar, el frontend puede dar error de conexión al arranque (se resuelve con retry en Angular) |
-| `environment: - API_BASE_URL=http://api:8080` | Variable opcional para inyección en runtime | ⚠️ Si no implementas `window.env` en Angular, esta variable no se usa. Es preparación para configuración dinámica futura |
+| `depends_on: - api` | Espera a que el servicio `api` esté corriendo | ⚠️ No espera healthcheck de la API. Si la API tarda en iniciar, el frontend puede dar error de conexión al arranque (se resuelve con retry en Angular) |
+| **Proxy Nginx `/api`** | Redirige peticiones del navegador al contenedor API | ✅ Evita CORS porque el navegador ve todo como mismo origen (`localhost:4200`) |
 
 ### 🌐 Red `sistemaventa-net`
 
@@ -229,14 +271,14 @@ export const environment = {
 > *"Para correr el proyecto completo, necesito: 1) iniciar SQL Server manualmente, 2) esperar a que esté listo, 3) iniciar la API con la connection string correcta, 4) construir y correr el frontend con el endpoint apuntando a la API. Si algo falla, debo reiniciar en orden. Y si un compañero quiere probar, debe repetir todo esto en su máquina."*
 
 **Solución Docker Compose:**
-```bash
+```powershell
 # En cualquier máquina con Docker Desktop:
-cd D:\02-tic\repos\MVCCOREANGULAR
+cd APISistemaVenta
 docker-compose up -d
 ```
 ✅ Un comando levanta los 3 servicios en el orden correcto, con configuración consistente, redes aisladas y persistencia de datos. El stack completo está disponible en:
 - Frontend: `http://localhost:4200`
-- API: `http://localhost:8080`
+- API: `http://localhost:8080/scalar/v1`
 - SQL Server: `localhost,1433` (para SSMS)
 
 ### 🚨 Errores comunes y cómo diagnosticarlos
@@ -245,11 +287,12 @@ docker-compose up -d
 |-------|---------------|----------|
 | `Cannot connect to sqlserver:1433` desde la API | La API y SQL Server no están en la misma red Docker | Verificar que ambos servicios tienen `networks: - sistemaventa-net` |
 | `Login failed for user 'sa'` | `MSSQL_SA_PASSWORD` no cumple política de complejidad | Usar contraseña con: 8+ chars, mayúscula, minúscula, número, símbolo. Ej: `MiClave123!` |
-| `ERR_CONNECTION_REFUSED` en frontend al llamar a `http://api:8080` | El frontend está corriendo FUERA de Docker (localhost) pero usa endpoint `api:8080` | Si corres frontend con `ng serve`, usar `host.docker.internal:8080`. Si corre en Docker Compose, usar `api:8080` |
+| `ERR_CONNECTION_REFUSED` en frontend al llamar a `/api/...` | Nginx proxy no está configurado correctamente | Verificar que `nginx.conf` tiene `location /api/ { proxy_pass http://api:8080/api/; }` |
 | `Named volume "sqldata" not found` | Volumen no definido en sección `volumes:` al final del archivo | Agregar `volumes: sqldata: driver: local` al final del compose file |
 | `Service 'api' depends on service 'sqlserver' which is undefined` | Nombre de servicio mal escrito en `depends_on` | Verificar que `sqlserver` en `depends_on` coincide exactamente con el nombre del servicio definido |
-| `Healthcheck failed: sqlcmd: command not found` | Imagen de SQL Server antigua sin `mssql-tools18` | Usar imagen `2022-latest` o ajustar el comando del healthcheck a la versión de tools disponible |
+| `Healthcheck failed: sqlcmd: command not found` | Imagen de SQL Server antigua sin `mssql-tools18` | Usar imagen `2022-latest` o ajustar el comando del healthcheck |
 | `Bind for 0.0.0.0:8080 failed: port is already allocated` | Otro proceso (o contenedor) ya usa el puerto 8080 en el host | Cambiar a `- "8081:8080"` en el servicio `api`, o detener el proceso que ocupa el puerto |
+| `System.NotSupportedException: Globalization Invariant Mode` | Alpine sin ICU + `Microsoft.Data.SqlClient` | Verificar que Dockerfile tiene `apk add icu-libs icu-data-full` y `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false` |
 
 ---
 
@@ -261,10 +304,11 @@ docker-compose up -d
 |----------|----------------------------|-----------|
 | **Named volume para persistencia** | `sqldata:/var/opt/mssql` + definición en `volumes:` | Datos sobreviven a `docker-compose down`. Portable entre máquinas |
 | **Variables de entorno para secrets** | `${MSSQL_SA_PASSWORD}`, `${JWT_KEY}` + `.env.example` | Secrets no están en el código. Fácil rotación sin rebuild |
-| **Healthcheck con herramienta nativa** | `sqlcmd -Q "SELECT 1"` para SQL Server | Verificación real de que el servicio está listo para trabajar, no solo que el proceso corre |
-| **depends_on con condition: service_healthy** | API espera a que SQL Server pase healthcheck | Evita race conditions al arranque: la API no intenta conectarse antes de que la BD esté lista |
-| **Red Docker aislada** | `networks: - sistemaventa-net` en todos los servicios | Comunicación por nombre de servicio (`sqlserver`, `api`), no por IP. Más estable y seguro |
-| **Build contexts relativos** | `context: ./APISistemaVenta`, `context: ./AppSistemaVenta` | Permite ejecutar `docker-compose` desde la raíz del proyecto, sin importar dónde estén los sub-repos |
+| **Healthcheck con herramienta nativa** | `sqlcmd -Q "SELECT 1"` para SQL Server | Verificación real de que el servicio está listo para trabajar |
+| **depends_on con condition: service_healthy** | API espera a que SQL Server pase healthcheck | Evita race conditions al arranque |
+| **Red Docker aislada** | `networks: - sistemaventa-net` en todos los servicios | Comunicación por nombre de servicio, no por IP. Más estable y seguro |
+| **Build contexts relativos correctos** | `context: .` y `context: ../AppSistemaVenta` | Permite ejecutar `docker-compose` desde el repo del backend |
+| **Globalización explícita en Alpine** | `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false` + ICU | Evita errores de cultura con `Microsoft.Data.SqlClient` |
 | **restart: on-failure** | En servicios `api` y `frontend` | Recuperación automática ante fallos temporales en desarrollo |
 
 ### ⚠️ Riesgos a evitar en producción (y cómo los evitamos)
@@ -283,6 +327,7 @@ services:
     environment:
       ConnectionStrings__cadenaSQL: "Server=sqlserver,1433;..."  # ✅ Nombre de servicio Docker
       Jwt__Key: "${JWT_KEY}"  # ✅ Inyectado desde .env (no commiteado)
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "false"  # ✅ Globalización habilitada para Alpine
 ```
 
 ### 🔧 Mejoras futuras (Parking Lot — no urgentes)
@@ -292,6 +337,20 @@ services:
 - [ ] **Secrets management en producción**: Reemplazar `.env` por Azure Key Vault o Docker secrets en entorno productivo
 - [ ] **Multi-arch build**: `docker-compose build --platform linux/amd64,linux/arm64` para soportar M1/M2 y servidores ARM
 - [ ] **Logging driver configurado**: `logging: options: max-size: "10m", max-file: "3"` para evitar que logs llenen el disco
+
+---
+
+## 🔧 Correcciones aplicadas (Mayo 2026)
+
+| Corrección | Antes | Después | Razón |
+|------------|-------|---------|--------|
+| **ICU en Alpine** | Sin ICU | `apk add icu-libs icu-data-full` | Soporte de globalización para `Microsoft.Data.SqlClient` |
+| **Variable de entorno SQL** | `SA_PASSWORD` | `MSSQL_SA_PASSWORD` | Nueva convención oficial de Microsoft |
+| **Globalización explícita** | No configurada | `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false` | Evita errores de cultura en Alpine |
+| **Rutas de contexto** | `./APISistemaVenta` | `.` y `../AppSistemaVenta` | docker-compose.yml movido al repo del backend |
+| **Endpoint Angular** | `http://api:8080/api/` | `/api/` + proxy Nginx | El navegador no resuelve nombres de servicios Docker |
+| **Línea version** | `version: '3.8'` | Eliminada | Docker Compose v2+ no la requiere (warning informativo) |
+| **Healthcheck escape** | `$${VAR}` mal escapado | `\"$${MSSQL_SA_PASSWORD}\"` | Escape correcto para variables en CMD-SHELL |
 
 ---
 
@@ -350,10 +409,10 @@ services:
 
 ## 📌 8. Nivel real de dominio
 
-**🔄 Lo puedo repetir sin ayuda**
+**🔄 Lo puedo repetir con checklist propio**
 
 *Honestidad (ENGRAM.md):* 
-> *"Docker Compose en fortalecimiento: implementé orquestación de 3 servicios (SQL Server, .NET API, Angular) con healthchecks, redes aisladas, volúmenes nombrados y variables de entorno guiado, con comprensión de trade-offs de persistencia, seguridad y comunicación entre servicios. Pendiente: aplicar en pipeline de CI/CD con gestión de secrets y configuración multi-entorno."*
+> *"Docker Compose en fortalecimiento: implementé orquestación de 3 servicios (SQL Server, .NET API, Angular) con healthchecks, redes aisladas, volúmenes nombrados y variables de entorno guiado, con comprensión de trade-offs de persistencia, seguridad y comunicación entre servicios. Correcciones aplicadas: ICU, MSSQL_SA_PASSWORD, rutas relativas, proxy Nginx. Pendiente: aplicar en pipeline de CI/CD con gestión de secrets y configuración multi-entorno."*
 
 ---
 
@@ -376,7 +435,8 @@ services:
 # =============================================================================
 # 1. Levantar todo el stack
 # =============================================================================
-cd D:\02-tic\repos\MVCCOREANGULAR
+# Desde el repo del backend (donde está docker-compose.yml)
+cd APISistemaVenta
 docker-compose up -d
 
 # =============================================================================
@@ -386,8 +446,8 @@ docker-compose ps
 # Deberías ver:
 # NAME                          IMAGE                              STATUS
 # sistemaventa-sqlserver        mssql/server:2022-latest           Up (healthy)
-# sistemaventa-api              sistemaventa-api                   Up
-# sistemaventa-frontend         sistemaventa-frontend              Up
+# sistemaventa-api              apisistemaventa-api                Up
+# sistemaventa-frontend         apisistemaventa-frontend           Up
 
 # =============================================================================
 # 3. Ver logs de un servicio si hay error
@@ -402,8 +462,8 @@ docker-compose logs frontend   # Logs de Nginx/Angular
 # Frontend
 Invoke-WebRequest -Uri http://localhost:4200 -UseBasicParsing | Select-Object StatusCode
 
-# API health (si tienes endpoint /health)
-Invoke-WebRequest -Uri http://localhost:8080/health -UseBasicParsing
+# API documentation
+Invoke-WebRequest -Uri http://localhost:8080/scalar/v1 -UseBasicParsing | Select-Object StatusCode
 
 # SQL Server desde host (para debugging)
 docker exec -it sistemaventa-sqlserver /opt/mssql-tools18/bin/sqlcmd `
@@ -459,19 +519,26 @@ docker-compose down  # Sin -v: los datos en sqldata se preservan
 "Server=localhost,1433;Database=DBVENTAngular;..." 
 → La API intenta conectarse a sí misma, no a SQL Server
 
-✅ Endpoint correcto en Frontend (dentro de Docker Compose):
-"http://api:8080/api/"
+✅ Endpoint correcto en Frontend (Docker Compose + Nginx proxy):
+endpoint: "/api/"
+→ El navegador llama a http://localhost:4200/api/* 
+→ Nginx redirige a http://api:8080/api/*
 
-❌ Endpoint incorrecto (usa localhost):
-"http://localhost:8080/api/"
-→ El frontend en Docker intenta conectarse a sí mismo, no a la API
+❌ Endpoint incorrecto (intenta usar nombre de servicio Docker):
+endpoint: "http://api:8080/api/"
+→ El navegador NO puede resolver 'api' porque no está en la red Docker
+→ Resultado: ERR_NAME_NOT_RESOLVED
 
-✅ Endpoint correcto en Frontend (desarrollo SIN compose):
-"http://host.docker.internal:8080/api/"
-→ host.docker.internal es un alias especial de Docker Desktop 
+✅ Endpoint correcto en Frontend (desarrollo SIN Docker Compose):
+endpoint: "http://localhost:8080/api/"
+→ Comunicación directa con la API corriendo en el host
+
+✅ Endpoint correcto en Frontend (frontend en Docker, API en host):
+endpoint: "http://host.docker.internal:8080/api/"
+→ host.docker.internal es alias especial de Docker Desktop 
    que apunta a la máquina host desde dentro del contenedor
 ```
 
 ---
 
-> **Nota de honestidad (AGENTS.md + ENGRAM.md):** Este documento se basó en archivos reales del repositorio (`docker-compose.yml`, `.env.example`, `environment.ts`). No se inventó configuración no evidenciada. Los trade-offs y justificaciones se derivan de documentación oficial de Docker, Microsoft y prácticas de la industria. El nivel de dominio declarado refleja implementación guiada con comprensión creciente, no expertise consolidado.
+> **Nota de honestidad (AGENTS.md + ENGRAM.md):** Este documento se basó en archivos reales del repositorio (`docker-compose.yml`, `.env.example`, `environment.ts`, `nginx.conf`). No se inventó configuración no evidenciada. Los trade-offs y justificaciones se derivan de documentación oficial de Docker, Microsoft y prácticas de la industria. El nivel de dominio declarado refleja implementación guiada con comprensión creciente, no expertise consolidado.
