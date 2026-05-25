@@ -12,7 +12,7 @@ services:
     ports:
       - "1433:1433"
     volumes:
-      - sqldata:/var/opt/
+      - sqldata:/var/opt/mssql
       - ./database/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C || exit 1"]
