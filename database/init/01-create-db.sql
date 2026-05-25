@@ -55,4 +55,25 @@ INSERT INTO MenuRol (IdMenu, IdRol) VALUES (3,3),(4,3),(5,3),(6,3);
 INSERT INTO Categoria (Nombre) VALUES ('Laptops'),('Monitores'),('Teclados'),('Auriculares'),('Memorias'),('Accesorios');
 INSERT INTO Producto (Nombre, IdCategoria, Stock, Precio) VALUES ('Laptop HP',1,10,2500000);
 INSERT INTO NumeroDocumento (Ultimo_Numero) VALUES (0);
+GO 
+
+IF NOT EXISTS (SELECT 1 FROM Usuario WHERE Correo = 'admin@sistema.com')
+BEGIN
+-- SCRIPT USUARIOS INICIALES
+-- Generado con BCrypt Work Factor 11
+
+-- Usuario: admin@sistema.com | Clave: Admin2026!
+INSERT INTO Usuario (nombreCompleto, Correo, IdRol, Clave, EsActivo, fechaRegistro)
+VALUES ('Administrador Sistema', 'admin@sistema.com', 1, '$2a$11$.lBfPiI91jtze27gdVm8V.ewtUupuRH5oNC6LNMvwkOjYNvOF7vAu', 1, '2026-05-25 11:30:19');
+
+-- Usuario: supervisor@sistema.com | Clave: Super2026!
+INSERT INTO Usuario (nombreCompleto, Correo, IdRol, Clave, EsActivo, fechaRegistro)
+VALUES ('Supervisor Demo', 'supervisor@sistema.com', 2, '$2a$11$HRRUXVai56rDDasKtLRxFOp2Fho6YaPlS7A3JnUXU4f35LXscbv2C', 1, '2026-05-25 11:30:19');
+
+-- Usuario: empleado@sistema.com | Clave: Emple2026!
+INSERT INTO Usuario (nombreCompleto, Correo, IdRol, Clave, EsActivo, fechaRegistro)
+VALUES ('Empleado Demo', 'empleado@sistema.com', 3, '$2a$11$pV2ojpPvROV4Ht5ZkyRhpOi94lonEwwYPLoB8hIay3knUjH7TTkEe', 1, '2026-05-25 11:30:19');
+
+
+END 
 GO
