@@ -13,13 +13,35 @@ services:
       - "1433:1433"
     volumes:
       - sqldata:/var/opt/mssql
-      - ./database/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C || exit 1"]
       interval: 10s
       retries: 10
       start_period: 30s
       timeout: 5s
+    networks:
+      - sistemaventa-net
+
+  # =============================================================================
+  # 🧩 Inicialización de Base de Datos
+  # =============================================================================
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sistemaventa-db-init
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+    volumes:
+      - ./database/init/01-create-db.sql:/scripts/01-create-db.sql:ro
+    command: >
+      /bin/bash -c '
+      echo "Ejecutando script de inicialización de base de datos...";
+      /opt/mssql-tools18/bin/sqlcmd -S sqlserver,1433 -U sa -P "$${MSSQL_SA_PASSWORD}" -C -b -i /scripts/01-create-db.sql;
+      echo "Inicialización finalizada.";
+      '
+    restart: "no"
     networks:
       - sistemaventa-net
 
@@ -44,6 +66,8 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     restart: on-failure
     networks:
       - sistemaventa-net
@@ -57,24 +81,17 @@ services:
       dockerfile: Dockerfile
     container_name: sistemaventa-frontend
     ports:
-      - "4200:80"    
-      # Nginx proxy maneja /api → api:8080, no necesita variable de entorno
+      - "4200:80"
     depends_on:
       - api
     restart: on-failure
     networks:
       - sistemaventa-net
 
-# =============================================================================
-# 🌐 Redes
-# =============================================================================
 networks:
   sistemaventa-net:
     driver: bridge
 
-# =============================================================================
-# 💾 Volúmenes
-# =============================================================================
 volumes:
   sqldata:
     driver: local
