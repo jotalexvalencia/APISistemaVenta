@@ -251,6 +251,7 @@ Para detalles de implementación Docker (multi-stage, caching, networking, troub
 | `/docs/docker/02-dockerizacion-sqlserver.md` | SQL Server en Docker: persistencia, healthcheck, variables de entorno |
 | `/docs/docker/04-docker-compose.md` | Orquestación de servicios: redes, dependencias, volúmenes |
 | `/docs/docker/05-troubleshooting.md` | Flujo de diagnóstico: comandos, errores reales y soluciones |
+| [`/docs/docker/06-inicializacion-automatica-db.md`](file:///d:/02-tic/repos/MVCCOREANGULAR/APISistemaVenta/docs/docker/06-inicializacion-automatica-db.md) | Inicialización automática de BD y datos semilla (Menus, Categorías, Documentos) + Guía de Git |
 
 > 📌 **Nivel de dominio (ENGRAM)**: 🔄 Lo puedo repetir con checklist propio  
 > *Honestidad técnica: Implementado guiado con comprensión de trade-offs (ICU, MSSQL_SA_PASSWORD, globalización). Pendiente: aplicar en pipeline de CI/CD con registry y despliegue automático.*
