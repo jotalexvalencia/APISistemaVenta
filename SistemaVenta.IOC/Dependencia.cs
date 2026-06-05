@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SistemaVenta.DAL.DBContext;
@@ -30,6 +30,8 @@ namespace SistemaVenta.IOC
             services.AddScoped<IVentaRepository, VentaRepository>();//modelo exacto
 
             services.AddAutoMapper(cfg => cfg.AddProfile<AutoMapperProfile>());
+
+            services.AddScoped<SistemaVenta.Utility.Seguridad.IJwtService, SistemaVenta.Utility.Seguridad.JwtService>();
 
             services.AddScoped<IRolService,RolService>();
             services.AddScoped<IUsuarioService,UsuarioService>();

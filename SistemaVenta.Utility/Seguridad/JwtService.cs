@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.Configuration;
@@ -37,7 +37,8 @@ namespace SistemaVenta.Utility.Seguridad
             };
 
             // 2. Configurar la llave secreta
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "Clave_Por_Defecto_Segura_1234567890"));
+            var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key no configurada. Verifica appsettings o variables de entorno.");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             // 3. Generar el Token

@@ -38,8 +38,6 @@ builder.Services.AddCors(options =>
 });
 
 // --- Configuración JWT ---
-builder.Services.AddScoped<SistemaVenta.Utility.Seguridad.IJwtService,
-    SistemaVenta.Utility.Seguridad.JwtService>();
 
 // JWT Key sin fallback hardcodeado — falla explícita si no está configurada
 var jwtKey = builder.Configuration["Jwt:Key"]

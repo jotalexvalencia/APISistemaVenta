@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using SistemaVenta.Model;
@@ -190,7 +190,7 @@ public partial class DbventangularContext : DbContext
 
             entity.Property(e => e.IdUsuario).HasColumnName("idUsuario");
             entity.Property(e => e.Clave)
-                .HasMaxLength(40)
+                .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("clave");
             entity.Property(e => e.Correo)
@@ -238,6 +238,18 @@ public partial class DbventangularContext : DbContext
         });
 
         
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("RefreshToken");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Token)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("Token");
+            entity.Property(e => e.Revocado)
+                .HasColumnName("Revocado");
+        });
 
         OnModelCreatingPartial(modelBuilder);
     }
