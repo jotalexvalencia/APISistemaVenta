@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using SistemaVenta.BLL.Servicios.Contrato;
@@ -7,6 +8,7 @@ using SistemaVenta.API.Utilidad;
 
 namespace SistemaVenta.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UsuarioController : ControllerBase
@@ -39,6 +41,7 @@ namespace SistemaVenta.API.Controllers
             return Ok(rsp);
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("IniciarSesion")]
         public async Task<IActionResult> IniciarSesion([FromBody] LoginDTO login)
@@ -123,6 +126,7 @@ namespace SistemaVenta.API.Controllers
             return Ok(rsp);
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("RenovarToken")]
         public async Task<IActionResult> RenovarToken([FromBody] string refreshToken)

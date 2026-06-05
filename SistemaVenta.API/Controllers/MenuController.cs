@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using SistemaVenta.BLL.Servicios.Contrato;
@@ -7,6 +8,7 @@ using SistemaVenta.API.Utilidad;
 
 namespace SistemaVenta.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class MenuController : ControllerBase
@@ -20,14 +22,14 @@ namespace SistemaVenta.API.Controllers
 
         [HttpGet]
         [Route("Lista")]
-        public async Task<IActionResult> Lista(int idUusuario)
+        public async Task<IActionResult> Lista(int idUsuario)
         {
             var rsp = new Response<List<MenuDTO>>();
 
             try
             {
                 rsp.status = true;
-                rsp.Value = await _menuServicio.Lista(idUusuario);
+                rsp.Value = await _menuServicio.Lista(idUsuario);
             }
             catch (Exception ex)
             {
