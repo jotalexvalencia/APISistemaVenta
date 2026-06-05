@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
 using SistemaVenta.DAL.DBContext;
 using SistemaVenta.DAL.Repositorios.Contrato;
 using SistemaVenta.Model;
@@ -31,20 +32,25 @@ namespace SistemaVenta.DAL.Repositorios
                     foreach (DetalleVenta dv in modelo.DetalleVenta)
                     {
 
-                        if (dv.Cantidad > 0)
-                        {
-
-                            Producto producto_encontrado = _dbcontext.Productos.Where(p => p.IdProducto == dv.IdProducto).First();
-                            producto_encontrado.Stock = producto_encontrado.Stock - dv.Cantidad;
-                            _dbcontext.Productos.Update(producto_encontrado);
-                        }
-                        else
+                        if (dv.Cantidad <= 0)
                             throw new Exception("Debe ingresar cantidad mayor o igual a 1");
+
+                        var producto_encontrado = await _dbcontext.Productos
+                            .Where(p => p.IdProducto == dv.IdProducto)
+                            .FirstOrDefaultAsync()
+                            ?? throw new Exception("Producto no encontrado");
+
+                        if (producto_encontrado.Stock < dv.Cantidad)
+                            throw new Exception("Stock insuficiente");
+
+                        producto_encontrado.Stock -= dv.Cantidad;
+                        _dbcontext.Productos.Update(producto_encontrado);
 
                     }
                     await _dbcontext.SaveChangesAsync();
 
-                    NumeroDocumento correlativo = _dbcontext.NumeroDocumentos.First();
+                    var correlativo = await _dbcontext.NumeroDocumentos.FirstOrDefaultAsync()
+                        ?? throw new Exception("Numero de documento no configurado");
 
                     correlativo.UltimoNumero = correlativo.UltimoNumero + 1;
                     correlativo.FechaRegistro = DateTime.Now;
