@@ -361,5 +361,53 @@ IF NOT EXISTS (SELECT 1 FROM NumeroDocumento)
     INSERT INTO NumeroDocumento (ultimo_Numero) VALUES (0);
 GO
 
+-- 8. PRODUCTOS SEMILLA (asociados a las categorías ya insertadas)
+PRINT 'Insertando Productos Semilla...';
+DECLARE @IdCatLaptops INT = (SELECT idCategoria FROM Categoria WHERE nombre = 'Laptops');
+DECLARE @IdCatMonitores INT = (SELECT idCategoria FROM Categoria WHERE nombre = 'Monitores');
+DECLARE @IdCatTeclados INT = (SELECT idCategoria FROM Categoria WHERE nombre = 'Teclados');
+DECLARE @IdCatAuriculares INT = (SELECT idCategoria FROM Categoria WHERE nombre = 'Auriculares');
+DECLARE @IdCatMemorias INT = (SELECT idCategoria FROM Categoria WHERE nombre = 'Memorias');
+DECLARE @IdCatAccesorios INT = (SELECT idCategoria FROM Categoria WHERE nombre = 'Accesorios');
+
+-- Laptops
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Laptop HP Pavilion 15')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Laptop HP Pavilion 15', @IdCatLaptops, 10, 2500.00, 1);
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Laptop Dell Inspiron 14')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Laptop Dell Inspiron 14', @IdCatLaptops, 8, 2200.00, 1);
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Laptop Lenovo ThinkPad')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Laptop Lenovo ThinkPad', @IdCatLaptops, 5, 2800.00, 1);
+
+-- Monitores
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Monitor Samsung 24"')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Monitor Samsung 24"', @IdCatMonitores, 15, 450.00, 1);
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Monitor LG 27" 4K')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Monitor LG 27" 4K', @IdCatMonitores, 12, 650.00, 1);
+
+-- Teclados
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Teclado Mecánico Logitech')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Teclado Mecánico Logitech', @IdCatTeclados, 20, 120.00, 1);
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Teclado Inalámbrico Microsoft')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Teclado Inalámbrico Microsoft', @IdCatTeclados, 18, 85.00, 1);
+
+-- Auriculares
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Auriculares Sony WH-1000XM5')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Auriculares Sony WH-1000XM5', @IdCatAuriculares, 7, 350.00, 1);
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Auriculares HyperX Cloud II')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Auriculares HyperX Cloud II', @IdCatAuriculares, 10, 150.00, 1);
+
+-- Memorias
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'USB Kingston 64GB')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('USB Kingston 64GB', @IdCatMemorias, 30, 25.00, 1);
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'SSD Samsung 1TB')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('SSD Samsung 1TB', @IdCatMemorias, 10, 120.00, 1);
+
+-- Accesorios
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Mouse Inalámbrico Logitech')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Mouse Inalámbrico Logitech', @IdCatAccesorios, 25, 45.00, 1);
+IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'WebCam Logitech C920')
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('WebCam Logitech C920', @IdCatAccesorios, 8, 95.00, 1);
+GO
+
 PRINT '>>> Finalizado. Claves forzadas y datos semilla adicionales cargados.';
 GO

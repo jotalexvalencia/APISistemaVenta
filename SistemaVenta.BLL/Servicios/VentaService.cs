@@ -29,15 +29,23 @@ namespace SistemaVenta.BLL.Servicios
             _mapper = mapper;
         }
 
-        public async Task<VentaDTO> Registrar(VentaDTO modelo )
+        public async Task<VentaDTO> Registrar(VentaDTO modelo)
         {
-            try 
+            try
             {
+                if (modelo.DetalleVenta is null || modelo.DetalleVenta.Count == 0)
+                    throw new TaskCanceledException("Debe incluir al menos un producto en la venta");
+                if (string.IsNullOrWhiteSpace(modelo.TipoPago))
+                    throw new TaskCanceledException("Debe especificar el tipo de pago");
+                if (modelo.DetalleVenta.Any(d => d.IdProducto is null or 0))
+                    throw new TaskCanceledException("Debe especificar un producto válido en cada detalle");
+
                 var ventaGenerada = await _ventaRepositorio.Registrar(_mapper.Map<Venta>(modelo));
                 if (ventaGenerada.IdVenta == 0)
-                    throw new TaskCanceledException("No se pudo crear");
+                    throw new TaskCanceledException("No se pudo crear la venta");
                 return _mapper.Map<VentaDTO>(ventaGenerada);
-            } catch { throw; }
+            }
+            catch { throw; }
         }
 
         public async Task<List<VentaDTO>> Historial(string buscarPor, string numeroVenta, string fechaInicio, string fechaFin)
