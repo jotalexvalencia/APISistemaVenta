@@ -56,6 +56,14 @@ sequenceDiagram
     end
 ```
 
+### Usuarios de prueba
+
+| Correo | Contraseña | Rol |
+|--------|-----------|-----|
+| `admin@sistema.com` | `Admin2026!` | Administrador — acceso completo |
+| `supervisor@sistema.com` | `Super2026!` | Supervisor — ventas + historial |
+| `empleado@sistema.com` | `Emple2026!` | Empleado — productos + ventas + reportes |
+
 ### Medidas de seguridad implementadas
 
 | Medida | Implementación | Propósito |
@@ -237,6 +245,8 @@ docker-compose down -v  # El -v elimina el volumen sqldata
 - ✅ Rate limiting nativo (.NET 7+) con 100 req/min por cliente
 - ✅ Security headers personalizados (`X-Content-Type-Options`, `X-Frame-Options`, etc.)
 - ✅ Globalización habilitada para Alpine + SQL Client
+- ✅ Imágenes de productos y fotos de usuarios servidas estáticamente desde `wwwroot/imagenes/`
+- ✅ AGENTS.md con guía completa del proyecto (setup, comandos, arquitectura, CI, test users)
 - ✅ Documentación técnica profunda en `/docs/docker/`
 
 ---
@@ -297,4 +307,4 @@ Desarrollador de Software — Colombia
 ---
 
 > 📄 **Licencia**: MIT — Libre uso con atribución.  
-> 🔄 **Última actualización**: Mayo 2026 — .NET 10 + Docker multi-stage + Alpine + ICU + MSSQL_SA_PASSWORD
+> 🔄 **Última actualización**: Junio 2026 — .NET 10 + Docker multi-stage + Alpine + ICU + MSSQL_SA_PASSWORD
