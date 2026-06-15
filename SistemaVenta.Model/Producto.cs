@@ -15,6 +15,8 @@ public partial class Producto
 
     public decimal? Precio { get; set; }
 
+    public string? UrlImagen { get; set; }
+
     public bool? EsActivo { get; set; }
 
     public DateTime? FechaRegistro { get; set; }

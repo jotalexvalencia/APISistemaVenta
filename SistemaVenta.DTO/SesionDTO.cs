@@ -15,6 +15,8 @@
         public string? Correo { get; set; }
         public string? RolDescripcion { get; set; }
 
+        public string? UrlFoto { get; set; }
+
         // JWT Token (Short-lived, e.g., 1 hour) 
         public string? Token { get; set; }
         // Refresh Token (Long-lived, e.g., 7 days)

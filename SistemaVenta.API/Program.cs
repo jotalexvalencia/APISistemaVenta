@@ -98,6 +98,8 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.UseStaticFiles();
+
 // --- CORS por ambiente ---
 if (app.Environment.IsDevelopment())
     app.UseCors("DesarrolloLocal");

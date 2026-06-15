@@ -19,6 +19,8 @@
 
         public string? RolDescripcion { get; set; }
 
+        public string? UrlFoto { get; set; }
+
         // Used for creation/update. Should be null when retrieving user data for security reasons.
         public string? Clave { get; set; } 
 

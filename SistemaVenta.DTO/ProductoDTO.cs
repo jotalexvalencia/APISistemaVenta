@@ -16,6 +16,8 @@
         public int? IdCategoria { get; set; }
 
         public string? DescripcionCategoria { get; set; }
+        public string? UrlImagen { get; set; }
+
         public int? Stock { get; set; }
 
         public string? Precio { get; set; }

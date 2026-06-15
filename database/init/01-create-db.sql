@@ -230,15 +230,16 @@ PRINT 'Forzando actualización de claves de usuarios...';
 IF NOT EXISTS (SELECT 1 FROM Usuario WHERE correo = 'admin@sistema.com')
 BEGIN
     PRINT '  -> Creando usuario Admin con clave...';
-    INSERT INTO Usuario (nombreCompleto, correo, idRol, clave, esActivo, fechaRegistro)
+    INSERT INTO Usuario (nombreCompleto, correo, idRol, clave, urlFoto, esActivo, fechaRegistro)
     VALUES ('Administrador Sistema', 'admin@sistema.com', @IdAdmin, 
-            '$2a$11$.lBfPiI91jtze27gdVm8V.ewtUupuRH5oNC6LNMvwkOjYNvOF7vAu', 1, GETDATE());
+            '$2a$11$.lBfPiI91jtze27gdVm8V.ewtUupuRH5oNC6LNMvwkOjYNvOF7vAu', '/imagenes/usuarios/Foto001.JPG', 1, GETDATE());
 END
 ELSE
 BEGIN
     PRINT '  -> Actualizando clave de usuario Admin (independientemente de su valor actual)...';
     UPDATE Usuario 
-    SET clave = '$2a$11$.lBfPiI91jtze27gdVm8V.ewtUupuRH5oNC6LNMvwkOjYNvOF7vAu'
+    SET clave = '$2a$11$.lBfPiI91jtze27gdVm8V.ewtUupuRH5oNC6LNMvwkOjYNvOF7vAu',
+        urlFoto = '/imagenes/usuarios/Foto001.JPG'
     WHERE correo = 'admin@sistema.com';
 END
 
@@ -246,15 +247,16 @@ END
 IF NOT EXISTS (SELECT 1 FROM Usuario WHERE correo = 'supervisor@sistema.com')
 BEGIN
     PRINT '  -> Creando usuario Supervisor con clave...';
-    INSERT INTO Usuario (nombreCompleto, correo, idRol, clave, esActivo, fechaRegistro)
+    INSERT INTO Usuario (nombreCompleto, correo, idRol, clave, urlFoto, esActivo, fechaRegistro)
     VALUES ('Supervisor Demo', 'supervisor@sistema.com', @IdSupervisor, 
-            '$2a$11$HRRUXVai56rDDasKtLRxFOp2Fho6YaPlS7A3JnUXU4f35LXscbv2C', 1, GETDATE());
+            '$2a$11$HRRUXVai56rDDasKtLRxFOp2Fho6YaPlS7A3JnUXU4f35LXscbv2C', '/imagenes/usuarios/Foto002.JPG', 1, GETDATE());
 END
 ELSE
 BEGIN
     PRINT '  -> Actualizando clave de usuario Supervisor (independientemente de su valor actual)...';
     UPDATE Usuario 
-    SET clave = '$2a$11$HRRUXVai56rDDasKtLRxFOp2Fho6YaPlS7A3JnUXU4f35LXscbv2C'
+    SET clave = '$2a$11$HRRUXVai56rDDasKtLRxFOp2Fho6YaPlS7A3JnUXU4f35LXscbv2C',
+        urlFoto = '/imagenes/usuarios/Foto002.JPG'
     WHERE correo = 'supervisor@sistema.com';
 END
 
@@ -262,15 +264,16 @@ END
 IF NOT EXISTS (SELECT 1 FROM Usuario WHERE correo = 'empleado@sistema.com')
 BEGIN
     PRINT '  -> Creando usuario Empleado con clave...';
-    INSERT INTO Usuario (nombreCompleto, correo, idRol, clave, esActivo, fechaRegistro)
+    INSERT INTO Usuario (nombreCompleto, correo, idRol, clave, urlFoto, esActivo, fechaRegistro)
     VALUES ('Empleado Demo', 'empleado@sistema.com', @IdEmpleado, 
-            '$2a$11$pV2ojpPvROV4Ht5ZkyRhpOi94lonEwwYPLoB8hIay3knUjH7TTkEe', 1, GETDATE());
+            '$2a$11$pV2ojpPvROV4Ht5ZkyRhpOi94lonEwwYPLoB8hIay3knUjH7TTkEe', '/imagenes/usuarios/Foto003.JPG', 1, GETDATE());
 END
 ELSE
 BEGIN
     PRINT '  -> Actualizando clave de usuario Empleado (independientemente de su valor actual)...';
     UPDATE Usuario 
-    SET clave = '$2a$11$pV2ojpPvROV4Ht5ZkyRhpOi94lonEwwYPLoB8hIay3knUjH7TTkEe'
+    SET clave = '$2a$11$pV2ojpPvROV4Ht5ZkyRhpOi94lonEwwYPLoB8hIay3knUjH7TTkEe',
+        urlFoto = '/imagenes/usuarios/Foto003.JPG'
     WHERE correo = 'empleado@sistema.com';
 END
 GO
@@ -372,29 +375,29 @@ DECLARE @IdCatAccesorios INT = (SELECT idCategoria FROM Categoria WHERE nombre =
 
 -- Laptops
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Laptop HP Pavilion 15')
-    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Laptop HP Pavilion 15', @IdCatLaptops, 10, 2500.00, 1);
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, urlImagen, esActivo) VALUES ('Laptop HP Pavilion 15', @IdCatLaptops, 10, 2500.00, '/imagenes/productos/001_computadora.jpg', 1);
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Laptop Dell Inspiron 14')
-    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Laptop Dell Inspiron 14', @IdCatLaptops, 8, 2200.00, 1);
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, urlImagen, esActivo) VALUES ('Laptop Dell Inspiron 14', @IdCatLaptops, 8, 2200.00, '/imagenes/productos/002_computadora.jpg', 1);
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Laptop Lenovo ThinkPad')
-    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Laptop Lenovo ThinkPad', @IdCatLaptops, 5, 2800.00, 1);
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, urlImagen, esActivo) VALUES ('Laptop Lenovo ThinkPad', @IdCatLaptops, 5, 2800.00, '/imagenes/productos/003_laptop.jpg', 1);
 
 -- Monitores
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Monitor Samsung 24"')
-    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Monitor Samsung 24"', @IdCatMonitores, 15, 450.00, 1);
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, urlImagen, esActivo) VALUES ('Monitor Samsung 24"', @IdCatMonitores, 15, 450.00, '/imagenes/productos/007_monitor.jpg', 1);
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Monitor LG 27" 4K')
-    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Monitor LG 27" 4K', @IdCatMonitores, 12, 650.00, 1);
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, urlImagen, esActivo) VALUES ('Monitor LG 27" 4K', @IdCatMonitores, 12, 650.00, '/imagenes/productos/008_monitor.jpg', 1);
 
 -- Teclados
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Teclado Mecánico Logitech')
-    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Teclado Mecánico Logitech', @IdCatTeclados, 20, 120.00, 1);
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, urlImagen, esActivo) VALUES ('Teclado Mecánico Logitech', @IdCatTeclados, 20, 120.00, '/imagenes/productos/005_teclado.jpg', 1);
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Teclado Inalámbrico Microsoft')
-    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Teclado Inalámbrico Microsoft', @IdCatTeclados, 18, 85.00, 1);
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, urlImagen, esActivo) VALUES ('Teclado Inalámbrico Microsoft', @IdCatTeclados, 18, 85.00, '/imagenes/productos/006_teclado.jpg', 1);
 
 -- Auriculares
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Auriculares Sony WH-1000XM5')
-    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Auriculares Sony WH-1000XM5', @IdCatAuriculares, 7, 350.00, 1);
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, urlImagen, esActivo) VALUES ('Auriculares Sony WH-1000XM5', @IdCatAuriculares, 7, 350.00, '/imagenes/productos/009_microfono.jpg', 1);
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'Auriculares HyperX Cloud II')
-    INSERT INTO Producto (nombre, idCategoria, stock, precio, esActivo) VALUES ('Auriculares HyperX Cloud II', @IdCatAuriculares, 10, 150.00, 1);
+    INSERT INTO Producto (nombre, idCategoria, stock, precio, urlImagen, esActivo) VALUES ('Auriculares HyperX Cloud II', @IdCatAuriculares, 10, 150.00, '/imagenes/productos/010_microfono.jpg', 1);
 
 -- Memorias
 IF NOT EXISTS (SELECT 1 FROM Producto WHERE nombre = 'USB Kingston 64GB')
