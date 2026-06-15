@@ -13,5 +13,6 @@ namespace SistemaVenta.BLL.Servicios.Contrato
         Task<ProductoDTO> Crear(ProductoDTO modelo);
         Task<bool> Editar(ProductoDTO modelo);
         Task<bool> Eliminar(int id);
+        Task<bool> ActualizarImagen(int idProducto, string url);
     }
 }

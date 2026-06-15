@@ -16,6 +16,7 @@ namespace SistemaVenta.BLL.Servicios.Contrato
         Task<bool> Editar(UsuarioDTO modelo);
         Task<bool> Eliminar(int id);
         Task<SesionDTO> RenovarToken(string refreshToken);
+        Task<bool> ActualizarFoto(int idUsuario, string url);
 
     }
 }

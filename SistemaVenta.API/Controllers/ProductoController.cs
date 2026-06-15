@@ -125,8 +125,7 @@ namespace SistemaVenta.API.Controllers
 
                 string url = $"/imagenes/productos/{nombreArchivo}";
 
-                ProductoDTO dto = new ProductoDTO { IdProducto = idProducto, UrlImagen = url };
-                await _productoServicio.Editar(dto);
+                await _productoServicio.ActualizarImagen(idProducto, url);
 
                 rsp.status = true;
                 rsp.Value = url;

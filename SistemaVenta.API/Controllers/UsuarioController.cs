@@ -147,8 +147,7 @@ namespace SistemaVenta.API.Controllers
 
                 string url = $"/imagenes/usuarios/{nombreArchivo}";
 
-                UsuarioDTO dto = new UsuarioDTO { IdUsuario = idUsuario, UrlFoto = url };
-                await _usuarioServicio.Editar(dto);
+                await _usuarioServicio.ActualizarFoto(idUsuario, url);
 
                 rsp.status = true;
                 rsp.Value = url;

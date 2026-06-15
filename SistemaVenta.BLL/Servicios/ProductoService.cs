@@ -65,6 +65,7 @@ namespace SistemaVenta.BLL.Servicios
                 productoEncontrado.Stock = productoModelo.Stock;
                 productoEncontrado.Precio = productoModelo.Precio;
                 productoEncontrado.EsActivo = productoModelo.EsActivo;
+                productoEncontrado.UrlImagen = productoModelo.UrlImagen;
 
                 bool respuesta = await _productoRepositorio.Editar(productoEncontrado);
 
@@ -72,6 +73,23 @@ namespace SistemaVenta.BLL.Servicios
                     throw new TaskCanceledException("No se pudo editar");
                 return respuesta;
             } catch{throw;}
+        }
+
+        public async Task<bool> ActualizarImagen(int idProducto, string url)
+        {
+            try
+            {
+                var productoEncontrado = await _productoRepositorio.Obtener(p => p.IdProducto == idProducto);
+                if (productoEncontrado == null)
+                    throw new TaskCanceledException("El producto no existe");
+
+                productoEncontrado.UrlImagen = url;
+                bool respuesta = await _productoRepositorio.Editar(productoEncontrado);
+                if (!respuesta)
+                    throw new TaskCanceledException("No se pudo actualizar la imagen");
+                return respuesta;
+            }
+            catch { throw; }
         }
 
         public async Task<bool> Eliminar(int id)

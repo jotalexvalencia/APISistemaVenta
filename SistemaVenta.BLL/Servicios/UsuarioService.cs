@@ -199,6 +199,7 @@ namespace SistemaVenta.BLL.Servicios
                 usuarioEncontrado.Correo = usuarioModelo.Correo;
                 usuarioEncontrado.IdRol = usuarioModelo.IdRol;
                 usuarioEncontrado.EsActivo = usuarioModelo.EsActivo;
+                usuarioEncontrado.UrlFoto = usuarioModelo.UrlFoto;
 
                 // LÓGICA DE NEGOCIO: Si viene una clave nueva, la ciframos. Si no, dejamos la anterior.
                 // (Validación simple: si la clave es diferente de vacío/nulo, se actualiza)
@@ -210,6 +211,23 @@ namespace SistemaVenta.BLL.Servicios
                 bool respuesta = await _usuarioRepositorio.Editar(usuarioEncontrado);
                 if (!respuesta) throw new TaskCanceledException("No se pudo editar");
 
+                return respuesta;
+            }
+            catch { throw; }
+        }
+
+        public async Task<bool> ActualizarFoto(int idUsuario, string url)
+        {
+            try
+            {
+                var usuarioEncontrado = await _usuarioRepositorio.Obtener(u => u.IdUsuario == idUsuario);
+                if (usuarioEncontrado == null)
+                    throw new TaskCanceledException("El usuario no existe");
+
+                usuarioEncontrado.UrlFoto = url;
+                bool respuesta = await _usuarioRepositorio.Editar(usuarioEncontrado);
+                if (!respuesta)
+                    throw new TaskCanceledException("No se pudo actualizar la foto");
                 return respuesta;
             }
             catch { throw; }
