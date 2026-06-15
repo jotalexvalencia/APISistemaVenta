@@ -74,6 +74,7 @@ BEGIN
         [correo] [varchar](40) NULL,
         [idRol] [int] NULL,
         [clave] [varchar](255) NULL,
+        [urlFoto] [varchar](255) NULL,
         [esActivo] [bit] NULL,
         [fechaRegistro] [datetime] NULL
     );
@@ -101,6 +102,7 @@ BEGIN
         [idCategoria] [int] NULL,
         [stock] [int] NULL,
         [precio] [decimal](10,2) NULL,
+        [urlImagen] [varchar](255) NULL,
         [esActivo] [bit] NULL,
         [fechaRegistro] [datetime] NULL
     );
@@ -232,13 +234,13 @@ BEGIN
     PRINT '  -> Creando usuario Admin con clave...';
     INSERT INTO Usuario (nombreCompleto, correo, idRol, clave, urlFoto, esActivo, fechaRegistro)
     VALUES ('Administrador Sistema', 'admin@sistema.com', @IdAdmin, 
-            '$2a$11$.lBfPiI91jtze27gdVm8V.ewtUupuRH5oNC6LNMvwkOjYNvOF7vAu', '/imagenes/usuarios/Foto001.JPG', 1, GETDATE());
+            '$2a$11$llxXYZR754F3aA05LRSiWOO1B2WanRt7MbwKJFtPYr9LwfGDhDQJi', '/imagenes/usuarios/Foto001.JPG', 1, GETDATE());
 END
 ELSE
 BEGIN
     PRINT '  -> Actualizando clave de usuario Admin (independientemente de su valor actual)...';
     UPDATE Usuario 
-    SET clave = '$2a$11$.lBfPiI91jtze27gdVm8V.ewtUupuRH5oNC6LNMvwkOjYNvOF7vAu',
+    SET clave = '$2a$11$llxXYZR754F3aA05LRSiWOO1B2WanRt7MbwKJFtPYr9LwfGDhDQJi',
         urlFoto = '/imagenes/usuarios/Foto001.JPG'
     WHERE correo = 'admin@sistema.com';
 END
@@ -249,13 +251,13 @@ BEGIN
     PRINT '  -> Creando usuario Supervisor con clave...';
     INSERT INTO Usuario (nombreCompleto, correo, idRol, clave, urlFoto, esActivo, fechaRegistro)
     VALUES ('Supervisor Demo', 'supervisor@sistema.com', @IdSupervisor, 
-            '$2a$11$HRRUXVai56rDDasKtLRxFOp2Fho6YaPlS7A3JnUXU4f35LXscbv2C', '/imagenes/usuarios/Foto002.JPG', 1, GETDATE());
+            '$2a$11$KVgSFMNkLu7OG77vtuFZeu/zc/y//1C7rAyyxUWuAVThyl9Jmwyra', '/imagenes/usuarios/Foto002.JPG', 1, GETDATE());
 END
 ELSE
 BEGIN
     PRINT '  -> Actualizando clave de usuario Supervisor (independientemente de su valor actual)...';
     UPDATE Usuario 
-    SET clave = '$2a$11$HRRUXVai56rDDasKtLRxFOp2Fho6YaPlS7A3JnUXU4f35LXscbv2C',
+    SET clave = '$2a$11$KVgSFMNkLu7OG77vtuFZeu/zc/y//1C7rAyyxUWuAVThyl9Jmwyra',
         urlFoto = '/imagenes/usuarios/Foto002.JPG'
     WHERE correo = 'supervisor@sistema.com';
 END
@@ -266,13 +268,13 @@ BEGIN
     PRINT '  -> Creando usuario Empleado con clave...';
     INSERT INTO Usuario (nombreCompleto, correo, idRol, clave, urlFoto, esActivo, fechaRegistro)
     VALUES ('Empleado Demo', 'empleado@sistema.com', @IdEmpleado, 
-            '$2a$11$pV2ojpPvROV4Ht5ZkyRhpOi94lonEwwYPLoB8hIay3knUjH7TTkEe', '/imagenes/usuarios/Foto003.JPG', 1, GETDATE());
+            '$2a$11$bHRIE3znh40z23tryUBP3.SyRQngM1fw/.1fp25tMhk/7XeDbepKq', '/imagenes/usuarios/Foto003.JPG', 1, GETDATE());
 END
 ELSE
 BEGIN
     PRINT '  -> Actualizando clave de usuario Empleado (independientemente de su valor actual)...';
     UPDATE Usuario 
-    SET clave = '$2a$11$pV2ojpPvROV4Ht5ZkyRhpOi94lonEwwYPLoB8hIay3knUjH7TTkEe',
+    SET clave = '$2a$11$bHRIE3znh40z23tryUBP3.SyRQngM1fw/.1fp25tMhk/7XeDbepKq',
         urlFoto = '/imagenes/usuarios/Foto003.JPG'
     WHERE correo = 'empleado@sistema.com';
 END
