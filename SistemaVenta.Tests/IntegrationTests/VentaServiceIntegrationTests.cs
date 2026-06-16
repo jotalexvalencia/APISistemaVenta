@@ -53,6 +53,8 @@ namespace SistemaVenta.Tests
             Assert.NotNull(result);
             Assert.True(result.IdVenta > 0);
             Assert.Equal("Efectivo", result.TipoPago);
+            Assert.NotNull(result.FechaRegistro);
+            Assert.NotEmpty(result.FechaRegistro);
         }
 
         [Fact]

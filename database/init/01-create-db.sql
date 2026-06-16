@@ -181,6 +181,9 @@ IF NOT EXISTS (SELECT * FROM sys.default_constraints WHERE parent_object_id = OB
 IF NOT EXISTS (SELECT * FROM sys.default_constraints WHERE parent_object_id = OBJECT_ID('dbo.Usuario') AND name = 'DF_Usuario_fechaRegistro')
     ALTER TABLE [dbo].[Usuario] ADD DEFAULT (getdate()) FOR [fechaRegistro];
 
+IF NOT EXISTS (SELECT * FROM sys.default_constraints WHERE parent_object_id = OBJECT_ID('dbo.Venta') AND name = 'DF_Venta_fechaRegistro')
+    ALTER TABLE [dbo].[Venta] ADD DEFAULT (getdate()) FOR [fechaRegistro];
+
 IF NOT EXISTS (SELECT * FROM sys.default_constraints WHERE parent_object_id = OBJECT_ID('dbo.NumeroDocumento') AND name = 'DF_NumeroDocumento_fechaRegistro')
     ALTER TABLE [dbo].[NumeroDocumento] ADD DEFAULT (getdate()) FOR [fechaRegistro];
 

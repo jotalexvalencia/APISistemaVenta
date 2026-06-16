@@ -65,6 +65,7 @@ namespace SistemaVenta.DAL.Repositorios
 
                     numeroVenta = numeroVenta.Substring(numeroVenta.Length - cantidadDigitos, cantidadDigitos);
                     modelo.NumeroDocumento = numeroVenta;
+                    modelo.FechaRegistro = DateTime.Now;
 
                     await _dbcontext.Venta.AddAsync(modelo);
                     await _dbcontext.SaveChangesAsync();
