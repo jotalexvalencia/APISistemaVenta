@@ -87,7 +87,7 @@ sequenceDiagram
 | **Autenticación** | JWT + BCrypt + Refresh Tokens | - |
 | **Documentación** | Scalar (OpenAPI 3.0) | Latest |
 | **Mapeo** | AutoMapper | 16.x |
-| **Testing** | xUnit + Moq | Latest |
+| **Testing** | xUnit + SQLite Integration Tests | 7 tests |
 | **Containerización** | Docker multi-stage + Alpine + ICU | - |
 
 ---
@@ -245,7 +245,9 @@ docker-compose down -v  # El -v elimina el volumen sqldata
 - ✅ Rate limiting nativo (.NET 7+) con 100 req/min por cliente
 - ✅ Security headers personalizados (`X-Content-Type-Options`, `X-Frame-Options`, etc.)
 - ✅ Globalización habilitada para Alpine + SQL Client
+- ✅ Integración continua con Azure Pipelines (restore + build on `main`)
 - ✅ Imágenes de productos y fotos de usuarios servidas estáticamente desde `wwwroot/imagenes/`
+- ✅ 7 tests de integración con SQLite InMemory (VentaService: registro, stock, historial, refrescamiento sin mock)
 - ✅ AGENTS.md con guía completa del proyecto (setup, comandos, arquitectura, CI, test users)
 - ✅ Documentación técnica profunda en `/docs/docker/`
 
