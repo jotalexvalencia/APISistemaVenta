@@ -27,30 +27,22 @@ namespace SistemaVenta.BLL.Servicios
 
         public async Task<List<UsuarioDTO>> Lista()
         {
-            try
+            var queryUsuario = await _usuarioRepositorio.Consultar();
+            var listaUsuarios = queryUsuario.Include(rol => rol.IdRolNavigation).ToList();
+
+            var listaDto = _mapper.Map<List<UsuarioDTO>>(listaUsuarios);
+
+            foreach (var item in listaDto)
             {
-                var queryUsuario = await _usuarioRepositorio.Consultar();
-                var listaUsuarios = queryUsuario.Include(rol => rol.IdRolNavigation).ToList();
-
-                // Mapeamos
-                var listaDto = _mapper.Map<List<UsuarioDTO>>(listaUsuarios);
-
-                // SEGURIDAD: Limpiamos la clave para que no viaje en la lista
-                foreach (var item in listaDto)
-                {
-                    item.Clave = null;
-                }
-
-                return listaDto;
+                item.Clave = null;
             }
-            catch { throw; }
+
+            return listaDto;
         }
 
         public async Task<SesionDTO> ValidarCredenciales(string? correo, string? clave)
         {
-            try
-            {
-                // 1. Buscamos SOLO por correo
+            // 1. Buscamos SOLO por correo
                 var queryUsuario = await _usuarioRepositorio.Consultar(u => u.Correo == correo);
                 var usuarioEncontrado = queryUsuario.Include(rol => rol.IdRolNavigation).FirstOrDefault();
 
@@ -96,15 +88,11 @@ namespace SistemaVenta.BLL.Servicios
 
                 sesion.RefreshToken = refreshToken.Token;
                 return sesion;
-            }
-            catch { throw; }
         }
 
         public async Task<SesionDTO> RenovarToken(string? refreshToken)
         {
-            try
-            {
-                // 1. Buscar el token en BD
+            // 1. Buscar el token en BD
                 var tokenEncontrado = await _refreshTokenRepositorio.Obtener(t => t.Token == refreshToken && t.Activo == true);
 
                 if (tokenEncontrado == null)
@@ -152,14 +140,10 @@ namespace SistemaVenta.BLL.Servicios
                     Correo = usuario.Correo,
                     RolDescripcion = usuario.IdRolNavigation != null ? usuario.IdRolNavigation.Nombre : "Sin Rol" // <--- Agregado
                 };
-            }
-            catch { throw; }
         }
         public async Task<UsuarioDTO> Crear(UsuarioDTO modelo)
         {
-            try
-            {
-                // 1. Validación Clean Architecture: ¿Existe el correo?
+            // 1. Validación Clean Architecture: ¿Existe el correo?
                 var usuarioExistente = await _usuarioRepositorio.Obtener(u => u.Correo == modelo.Correo);
                 if (usuarioExistente != null)
                     throw new TaskCanceledException("El correo ya está registrado.");
@@ -180,15 +164,11 @@ namespace SistemaVenta.BLL.Servicios
                 usuarioCreado = query.Include(rol => rol.IdRolNavigation).First();
 
                 return _mapper.Map<UsuarioDTO>(usuarioCreado);
-            }
-            catch { throw; }
         }
 
         public async Task<bool> Editar(UsuarioDTO modelo)
         {
-            try
-            {
-                var usuarioModelo = _mapper.Map<Usuario>(modelo);
+            var usuarioModelo = _mapper.Map<Usuario>(modelo);
                 var usuarioEncontrado = await _usuarioRepositorio.Obtener(u => u.IdUsuario == usuarioModelo.IdUsuario);
 
                 if (usuarioEncontrado == null)
@@ -212,15 +192,11 @@ namespace SistemaVenta.BLL.Servicios
                 if (!respuesta) throw new TaskCanceledException("No se pudo editar");
 
                 return respuesta;
-            }
-            catch { throw; }
         }
 
         public async Task<bool> ActualizarFoto(int idUsuario, string url)
         {
-            try
-            {
-                var usuarioEncontrado = await _usuarioRepositorio.Obtener(u => u.IdUsuario == idUsuario);
+            var usuarioEncontrado = await _usuarioRepositorio.Obtener(u => u.IdUsuario == idUsuario);
                 if (usuarioEncontrado == null)
                     throw new TaskCanceledException("El usuario no existe");
 
@@ -229,23 +205,17 @@ namespace SistemaVenta.BLL.Servicios
                 if (!respuesta)
                     throw new TaskCanceledException("No se pudo actualizar la foto");
                 return respuesta;
-            }
-            catch { throw; }
         }
 
         public async Task<bool> Eliminar(int id)
         {
-            try
-            {
-                var usuarioEncontrado = await _usuarioRepositorio.Obtener(u => u.IdUsuario == id);
+            var usuarioEncontrado = await _usuarioRepositorio.Obtener(u => u.IdUsuario == id);
                 if (usuarioEncontrado == null) throw new TaskCanceledException("El usuario no existe");
 
                 bool respuesta = await _usuarioRepositorio.Eliminar(usuarioEncontrado);
                 if (!respuesta) throw new TaskCanceledException("No se pudo eliminar");
 
                 return respuesta;
-            }
-            catch { throw; }
         }
     }
 }

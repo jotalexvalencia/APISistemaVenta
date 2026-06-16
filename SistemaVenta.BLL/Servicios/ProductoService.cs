@@ -26,84 +26,66 @@ namespace SistemaVenta.BLL.Servicios
 
         public async Task<List<ProductoDTO>> Lista()
         {
-            try 
-            {
-                var queryProducto = await _productoRepositorio.Consultar();
+            var queryProducto = await _productoRepositorio.Consultar();
 
-                var listaProductos = queryProducto.Include(cat=>cat.IdCategoriaNavigation).ToList();
+            var listaProductos = queryProducto.Include(cat=>cat.IdCategoriaNavigation).ToList();
 
-                return _mapper.Map<List<ProductoDTO>>(listaProductos.ToList());
-            } 
-            catch { throw; }
+            return _mapper.Map<List<ProductoDTO>>(listaProductos.ToList());
         }
 
         public async Task<ProductoDTO> Crear(ProductoDTO modelo)
         {
-            try
-            {
-                var productoCreado = await _productoRepositorio.Crear(_mapper.Map<Producto>(modelo));
-                if (productoCreado.IdProducto == 0)
-                    throw new TaskCanceledException("No se pudo crear");
-                return _mapper.Map<ProductoDTO>(productoCreado);
-            } catch{throw;}
+            var productoCreado = await _productoRepositorio.Crear(_mapper.Map<Producto>(modelo));
+            if (productoCreado.IdProducto == 0)
+                throw new TaskCanceledException("No se pudo crear");
+            return _mapper.Map<ProductoDTO>(productoCreado);
         }
 
         public async Task<bool> Editar(ProductoDTO modelo)
         {
-            try
-            {
-                var productoModelo = _mapper.Map<Producto>(modelo);
-                var productoEncontrado = await _productoRepositorio.Obtener(u =>
-                u.IdProducto == productoModelo.IdProducto);
+            var productoModelo = _mapper.Map<Producto>(modelo);
+            var productoEncontrado = await _productoRepositorio.Obtener(u =>
+            u.IdProducto == productoModelo.IdProducto);
 
-                if(productoEncontrado==null)
-                    throw new TaskCanceledException("El producto no existe");
-                    
+            if(productoEncontrado==null)
+                throw new TaskCanceledException("El producto no existe");
 
-                productoEncontrado.Nombre = productoModelo.Nombre;
-                productoEncontrado.IdCategoria = productoModelo.IdCategoria;
-                productoEncontrado.Stock = productoModelo.Stock;
-                productoEncontrado.Precio = productoModelo.Precio;
-                productoEncontrado.EsActivo = productoModelo.EsActivo;
-                productoEncontrado.UrlImagen = productoModelo.UrlImagen;
+            productoEncontrado.Nombre = productoModelo.Nombre;
+            productoEncontrado.IdCategoria = productoModelo.IdCategoria;
+            productoEncontrado.Stock = productoModelo.Stock;
+            productoEncontrado.Precio = productoModelo.Precio;
+            productoEncontrado.EsActivo = productoModelo.EsActivo;
+            productoEncontrado.UrlImagen = productoModelo.UrlImagen;
 
-                bool respuesta = await _productoRepositorio.Editar(productoEncontrado);
+            bool respuesta = await _productoRepositorio.Editar(productoEncontrado);
 
-                if(!respuesta)
-                    throw new TaskCanceledException("No se pudo editar");
-                return respuesta;
-            } catch{throw;}
+            if(!respuesta)
+                throw new TaskCanceledException("No se pudo editar");
+            return respuesta;
         }
 
         public async Task<bool> ActualizarImagen(int idProducto, string url)
         {
-            try
-            {
-                var productoEncontrado = await _productoRepositorio.Obtener(p => p.IdProducto == idProducto);
-                if (productoEncontrado == null)
-                    throw new TaskCanceledException("El producto no existe");
+            var productoEncontrado = await _productoRepositorio.Obtener(p => p.IdProducto == idProducto);
+            if (productoEncontrado == null)
+                throw new TaskCanceledException("El producto no existe");
 
-                productoEncontrado.UrlImagen = url;
-                bool respuesta = await _productoRepositorio.Editar(productoEncontrado);
-                if (!respuesta)
-                    throw new TaskCanceledException("No se pudo actualizar la imagen");
-                return respuesta;
-            }
-            catch { throw; }
+            productoEncontrado.UrlImagen = url;
+            bool respuesta = await _productoRepositorio.Editar(productoEncontrado);
+            if (!respuesta)
+                throw new TaskCanceledException("No se pudo actualizar la imagen");
+            return respuesta;
         }
 
         public async Task<bool> Eliminar(int id)
         {
-            try
-            {
-                var productoEncontrado = await _productoRepositorio.Obtener(p => p.IdProducto == id);
-                if (productoEncontrado == null)
-                    throw new TaskCanceledException("El producto no existe");
-                bool respuesta = await _productoRepositorio.Eliminar(productoEncontrado);
-                if (!respuesta)
-                    throw new TaskCanceledException("No se pudo eliminar");
-                return respuesta;
-            } catch{throw;}
+            var productoEncontrado = await _productoRepositorio.Obtener(p => p.IdProducto == id);
+            if (productoEncontrado == null)
+                throw new TaskCanceledException("El producto no existe");
+            bool respuesta = await _productoRepositorio.Eliminar(productoEncontrado);
+            if (!respuesta)
+                throw new TaskCanceledException("No se pudo eliminar");
+            return respuesta;
         }
 
         

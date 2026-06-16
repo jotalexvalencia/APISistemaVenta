@@ -25,16 +25,8 @@ namespace SistemaVenta.BLL.Servicios
 
         public async Task<List<CategoriaDTO>> Lista()
         {
-            try
-            {
-                var listaCategorias = await _categoriaRepositorio.Consultar();
-                return _mapper.Map<List<CategoriaDTO>>(listaCategorias.ToList());
-            }
-            catch 
-            {
-
-                throw;
-            }
+            var listaCategorias = await _categoriaRepositorio.Consultar();
+            return _mapper.Map<List<CategoriaDTO>>(listaCategorias.ToList());
         }
     }
 }

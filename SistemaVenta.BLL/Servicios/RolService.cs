@@ -29,16 +29,8 @@ namespace SistemaVenta.BLL.Servicios
 
         public async Task<List<RolDTO>> Lista()
         {
-            try
-            {
-                var listaRoles = await _rolRepositorio.Consultar();
-                return _mapper.Map<List<RolDTO>>(listaRoles.ToList());
-            }
-            catch
-            {
-
-                throw;
-            };
+            var listaRoles = await _rolRepositorio.Consultar();
+            return _mapper.Map<List<RolDTO>>(listaRoles.ToList());
         }
     }
 }
