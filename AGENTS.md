@@ -17,7 +17,7 @@ Stack: .NET 10 / ASP.NET Core Web API (Controllers, not Minimal API) / EF Core 1
 ```powershell
 dotnet restore
 dotnet build --configuration Release
-dotnet test                          # xUnit + Moq + coverlet (1 test file: VentaServiceTests.cs)
+dotnet test SistemaVenta.Tests/SistemaVenta.Tests.csproj # xUnit + SQLite InMemory integration tests (7 tests)
 dotnet run                           # from SistemaVenta.API/ → http://localhost:5018/scalar/v1
 ```
 
