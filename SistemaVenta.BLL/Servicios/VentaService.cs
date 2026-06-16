@@ -83,8 +83,8 @@ namespace SistemaVenta.BLL.Servicios
                 .Include(p => p.IdProductoNavigation)
                 .Include(v => v.IdVentaNavigation)
                 .Where(dv =>
-                dv.IdVentaNavigation.FechaRegistro >= fech_Inicio.Date &&
-                dv.IdVentaNavigation.FechaRegistro <= fech_Fin.Date
+                dv.IdVentaNavigation.FechaRegistro.Value.Date >= fech_Inicio.Date &&
+                dv.IdVentaNavigation.FechaRegistro.Value.Date <= fech_Fin.Date
                 ).ToListAsync();
 
             return _mapper.Map<List<ReporteDTO>>(ListaResultado); 
