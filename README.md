@@ -245,7 +245,7 @@ docker-compose down -v  # El -v elimina el volumen sqldata
 - ✅ Rate limiting nativo (.NET 7+) con 100 req/min por cliente
 - ✅ Security headers personalizados (`X-Content-Type-Options`, `X-Frame-Options`, etc.)
 - ✅ Globalización habilitada para Alpine + SQL Client
-- ✅ Integración continua con Azure Pipelines (restore + build on `main`)
+- ✅ Integración continua con Azure Pipelines (restore + build + 7 tests + Docker push on `main`)
 - ✅ Imágenes de productos y fotos de usuarios servidas estáticamente desde `wwwroot/imagenes/`
 - ✅ 7 tests de integración con SQLite InMemory (VentaService: registro, stock, historial, refrescamiento sin mock)
 - ✅ AGENTS.md con guía completa del proyecto (setup, comandos, arquitectura, CI, test users)
@@ -266,7 +266,7 @@ Para detalles de implementación Docker (multi-stage, caching, networking, troub
 | [`/docs/docker/06-inicializacion-automatica-db.md`](file:///d:/02-tic/repos/MVCCOREANGULAR/APISistemaVenta/docs/docker/06-inicializacion-automatica-db.md) | Inicialización automática de BD y datos semilla (Menus, Categorías, Documentos) + Guía de Git |
 
 > 📌 **Nivel de dominio (ENGRAM)**: 🔄 Lo puedo repetir con checklist propio  
-> *Honestidad técnica: Implementado guiado con comprensión de trade-offs (ICU, MSSQL_SA_PASSWORD, globalización). Pendiente: aplicar en pipeline de CI/CD con registry y despliegue automático.*
+> *Honestidad técnica: Implementado guiado con comprensión de trade-offs (ICU, MSSQL_SA_PASSWORD, globalización). ✅ Aplicado: pipeline CI/CD con registry (Azure Pipelines → Docker Hub, tags `BuildId` + `latest`). Pendiente: despliegue automático a un entorno.*
 
 ---
 
@@ -309,4 +309,4 @@ Desarrollador de Software — Colombia
 ---
 
 > 📄 **Licencia**: MIT — Libre uso con atribución.  
-> 🔄 **Última actualización**: Junio 2026 — .NET 10 + Docker multi-stage + Alpine + ICU + MSSQL_SA_PASSWORD
+> 🔄 **Última actualización**: Agosto 2026 — CI/CD Azure Pipelines con Docker push a Docker Hub
