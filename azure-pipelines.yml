@@ -4,6 +4,11 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest' # Usamos una máquina Linux (estándar de la industria)
 
+variables:
+  dockerRegistryServiceConnection: 'DockerHub-SistemaVenta' # Nombre del service connection que crearas en Azure DevOps
+  imageRepository: 'alexjuniortupapa/apisistemaventa-api'
+  tag: '$(Build.BuildId)'
+
 steps:
 - script: echo Compilando el proyecto...
   displayName: 'Mensaje Inicial'
@@ -18,3 +23,18 @@ steps:
 
 - script: dotnet build --configuration Release
   displayName: 'Compilar Proyecto'
+
+- script: dotnet test SistemaVenta.Tests/SistemaVenta.Tests.csproj --configuration Release --no-build
+  displayName: 'Ejecutar Tests (SQLite Integration)'
+
+# 🐳 Docker: construir y publicar la imagen del API en Docker Hub
+- task: Docker@2
+  displayName: 'Build & Push Imagen Docker'
+  inputs:
+    containerRegistry: $(dockerRegistryServiceConnection)
+    repository: $(imageRepository)
+    command: 'buildAndPush'
+    Dockerfile: 'Dockerfile'
+    tags: |
+      $(tag)
+      latest
